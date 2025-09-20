@@ -1,4 +1,5 @@
 --[[
+
 	Dex++
 	Version 2.2
 	
@@ -2559,6 +2560,8 @@ local EmbeddedModules = {
 					if curObj == game then
 						path = "game"..path
 						break
+					elseif curObj == gethui() then
+						path = "gethui()"..path
 					end
 
 					local className = curObj.ClassName
@@ -2578,7 +2581,7 @@ local EmbeddedModules = {
 							local parCh = getCh(parObj)
 							local fcInd = tableFind(parCh,curObj)
 							indexName = ":GetChildren()["..fcInd.."]"
-						elseif parObj == game and API.Classes[className] and API.Classes[className].Tags.Service then
+						elseif parObj == game and API.Classes[className] and API.Classes[className].Tags.Service and parObj ~= gethui() then
 							indexName = ':GetService("'..className..'")'
 						end
 					elseif parObj == nil then
