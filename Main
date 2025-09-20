@@ -1,4 +1,5 @@
 --[[
+
 	Dex++
 	Version 2.2
 	
@@ -3476,7 +3477,7 @@ return search]==]
 				end
 				
 				local LazyFix = loadstring(game:HttpGet("https://raw.githubusercontent.com/infyiff/backup/refs/heads/main/SimpleSpyV3/DataToCode.lua"))()
-				setclipboard(LazyFix.Convert(nodes, true))
+				print(LazyFix.Convert(nodes[gethui()], true))
 			end
 
 			return Explorer
