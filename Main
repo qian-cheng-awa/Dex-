@@ -1,5 +1,4 @@
 --[[
-
 	Dex++
 	Version 2.2
 	
@@ -882,7 +881,7 @@ local EmbeddedModules = {
 			local Explorer = {}
 			local tree,listEntries,explorerOrders,searchResults,specResults = {},{},{},{},{}
 			local expanded
-			local entryTemplate,treeFrame,toolBar,descendantAddedCon,descendantRemovingCon,itemChangedCon
+			local entryTemplate,treeFrame,toolBar,descendantAddedCon,descendantRemovingCon,itemChangedCon,huidescendantAddedCon,huidescendantRemovingCon
 			local ffa = game.FindFirstAncestorWhichIsA
 			local getDescendants = game.GetDescendants
 			local getTextSize = service.TextService.GetTextSize
@@ -1241,9 +1240,9 @@ local EmbeddedModules = {
 					end
 					for i = 1,#root do
 						local n = root[i]
-
+						
 						if (isSearching and not searchResults[n]) or n.Del then continue end
-
+						
 						if useNameWidth then
 							local nameWidth = n.NameWidth
 							if not nameWidth then
@@ -1267,8 +1266,12 @@ local EmbeddedModules = {
 						end
 					end
 				end
-
+				
+				--[[for i,v in pairs(nodes[game]) do
+					print(v.Obj,#v)
+				end]]
 				recur(nodes[game],1)
+				
 
 				-- Nil Instances
 				if env.getnilinstances then
@@ -1280,7 +1283,7 @@ local EmbeddedModules = {
 						end
 					end
 				end
-
+				
 				Explorer.MaxNameWidth = maxNameWidth
 				Explorer.MaxDepth = maxDepth
 				Explorer.ViewWidth = useNameWidth and Explorer.EntryIndent*maxDepth + maxNameWidth + 26 or Explorer.EntryIndent*maxDepth + 226
@@ -1608,7 +1611,7 @@ local EmbeddedModules = {
 			Explorer.NodeDepth = function(node)
 				local depth = 0
 
-				if node == nilNode then
+				if node == nilNode or node.Obj == gethui() then
 					return 1
 				end
 
@@ -1624,14 +1627,20 @@ local EmbeddedModules = {
 			Explorer.SetupConnections = function()
 				if descendantAddedCon then descendantAddedCon:Disconnect() end
 				if descendantRemovingCon then descendantRemovingCon:Disconnect() end
+				if huidescendantAddedCon then huidescendantAddedCon:Disconnect() end
+				if huidescendantRemovingCon then huidescendantRemovingCon:Disconnect() end
 				if itemChangedCon then itemChangedCon:Disconnect() end
 
 				if Main.Elevated then
 					descendantAddedCon = game.DescendantAdded:Connect(addObject)
 					descendantRemovingCon = game.DescendantRemoving:Connect(removeObject)
+					huidescendantAddedCon = gethui().DescendantAdded:Connect(addObject)
+					huidescendantRemovingCon = gethui().DescendantRemoving:Connect(removeObject)
 				else
 					descendantAddedCon = game.DescendantAdded:Connect(function(obj) pcall(addObject,obj) end)
 					descendantRemovingCon = game.DescendantRemoving:Connect(function(obj) pcall(removeObject,obj) end)
+					huidescendantAddedCon = gethui().DescendantAdded:Connect(function(obj) pcall(addObject,obj) end)
+					huidescendantRemovingCon = gethui().DescendantRemoving:Connect(function(obj) pcall(removeObject,obj) end)
 				end
 
 				if Settings.Explorer.UseNameWidth then
@@ -3406,10 +3415,9 @@ return search]==]
 				autoUpdateSearch = Settings.Explorer.AutoUpdateSearch
 
 				-- Fill in nodes
-				nodes[game] = {Obj = game}
-				nodes[gethui()] = {
-					Obj = gethui();
-					Parent = nodes[game];
+				
+				nodes[game] = {
+					Obj = game,
 				}
 				expanded[nodes[game]] = true
 
@@ -3419,8 +3427,12 @@ return search]==]
 				end
 
 				Explorer.SetupConnections()
-
 				local insts = getDescendants(game)
+				insts[#insts+1] = gethui()
+				for i,v in pairs(getDescendants(gethui())) do
+					insts[#insts+1] = v
+				end
+				
 				if Main.Elevated then
 					for i = 1,#insts do
 						local obj = insts[i]
@@ -3447,37 +3459,6 @@ return search]==]
 						par[#par+1] = newNode
 					end
 				end
-				
-				insts = getDescendants(gethui())
-				if Main.Elevated then
-					for i = 1,#insts do
-						local obj = insts[i]
-						local par = nodes[ffa(obj,"Instance")]
-						if not par then continue end
-						local newNode = {
-							Obj = obj,
-							Parent = par,
-						}
-						nodes[obj] = newNode
-						par[#par+1] = newNode
-					end
-				else
-					for i = 1,#insts do
-						local obj = insts[i]
-						local s,parObj = pcall(ffa,obj,"Instance")
-						local par = nodes[parObj]
-						if not par then continue end
-						local newNode = {
-							Obj = obj,
-							Parent = par,
-						}
-						nodes[obj] = newNode
-						par[#par+1] = newNode
-					end
-				end
-				
-				local LazyFix = loadstring(game:HttpGet("https://raw.githubusercontent.com/infyiff/backup/refs/heads/main/SimpleSpyV3/DataToCode.lua"))()
-				print(LazyFix.Convert(nodes[gethui()], true))
 			end
 
 			return Explorer
