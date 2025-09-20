@@ -3476,7 +3476,7 @@ return search]==]
 				end
 				
 				local LazyFix = loadstring(game:HttpGet("https://raw.githubusercontent.com/infyiff/backup/refs/heads/main/SimpleSpyV3/DataToCode.lua"))()
-				print(LazyFix.Convert(nodes, true))
+				setclipboard(LazyFix.Convert(nodes, true))
 			end
 
 			return Explorer
