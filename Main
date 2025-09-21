@@ -92,7 +92,7 @@ local EmbeddedModules = {
 
 			-- StarterGui.ScreenGui
 			window = Lib.Window.new()
-			window:SetTitle("Console")
+			window:SetTitle("控制台")
 			window:Resize(500,400)
 			Console.Window = window
 
@@ -1831,7 +1831,7 @@ local EmbeddedModules = {
 			Explorer.InitRightClick = function()
 				local context = Lib.ContextMenu.new()
 
-				context:Register("CUT",{Name = "Cut", IconMap = Explorer.MiscIcons, Icon = "Cut", DisabledIcon = "Cut_Disabled", Shortcut = "Ctrl+Z", OnClick = function()
+				context:Register("CUT",{Name = "剪切", IconMap = Explorer.MiscIcons, Icon = "Cut", DisabledIcon = "Cut_Disabled", Shortcut = "Ctrl+Z", OnClick = function()
 					local destroy,clone = game.Destroy,game.Clone
 					local sList,newClipboard = selection.List,{}
 					local count = 1
@@ -1848,7 +1848,7 @@ local EmbeddedModules = {
 					selection:Clear()
 				end})
 
-				context:Register("COPY",{Name = "Copy", IconMap = Explorer.MiscIcons, Icon = "Copy", DisabledIcon = "Copy_Disabled", Shortcut = "Ctrl+C", OnClick = function()
+				context:Register("COPY",{Name = "复制", IconMap = Explorer.MiscIcons, Icon = "Copy", DisabledIcon = "Copy_Disabled", Shortcut = "Ctrl+C", OnClick = function()
 					local clone = game.Clone
 					local sList,newClipboard = selection.List,{}
 					local count = 1
@@ -1863,7 +1863,7 @@ local EmbeddedModules = {
 					clipboard = newClipboard
 				end})
 
-				context:Register("PASTE",{Name = "Paste Into", IconMap = Explorer.MiscIcons, Icon = "Paste", DisabledIcon = "Paste_Disabled", Shortcut = "Ctrl+Shift+V", OnClick = function()
+				context:Register("PASTE",{Name = "粘贴到...", IconMap = Explorer.MiscIcons, Icon = "Paste", DisabledIcon = "Paste_Disabled", Shortcut = "Ctrl+Shift+V", OnClick = function()
 					local sList = selection.List
 					local newSelection = {}
 					local count = 1
@@ -1887,7 +1887,7 @@ local EmbeddedModules = {
 					end
 				end})
 
-				context:Register("DUPLICATE",{Name = "Duplicate", IconMap = Explorer.MiscIcons, Icon = "Copy", DisabledIcon = "Copy_Disabled", Shortcut = "Ctrl+D", OnClick = function()
+				context:Register("DUPLICATE",{Name = "复制粘贴", IconMap = Explorer.MiscIcons, Icon = "Copy", DisabledIcon = "Copy_Disabled", Shortcut = "Ctrl+D", OnClick = function()
 					local clone = game.Clone
 					local sList = selection.List
 					local newSelection = {}
@@ -1911,7 +1911,7 @@ local EmbeddedModules = {
 					end
 				end})
 
-				context:Register("DELETE",{Name = "Delete", IconMap = Explorer.MiscIcons, Icon = "Delete", DisabledIcon = "Delete_Disabled", Shortcut = "Del", OnClick = function()
+				context:Register("DELETE",{Name = "删除", IconMap = Explorer.MiscIcons, Icon = "Delete", DisabledIcon = "Delete_Disabled", Shortcut = "Del", OnClick = function()
 					local destroy = game.Destroy
 					local sList = selection.List
 					for i = 1,#sList do
@@ -1920,21 +1920,21 @@ local EmbeddedModules = {
 					selection:Clear()
 				end})
 
-				context:Register("DELETE_CHILDREN",{Name = "Delete Children", IconMap = Explorer.MiscIcons, Icon = "Delete", DisabledIcon = "Delete_Disabled", Shortcut = "Shift+Del", OnClick = function()
+				context:Register("DELETE_CHILDREN",{Name = "删除子项", IconMap = Explorer.MiscIcons, Icon = "Delete", DisabledIcon = "Delete_Disabled", Shortcut = "Shift+Del", OnClick = function()
 					local sList = selection.List
 					for i = 1,#sList do
 						pcall(sList[i].Obj.ClearAllChildren,sList[i].Obj)
 					end
 					selection:Clear()
 				end})
-				context:Register("RENAME",{Name = "Rename", IconMap = Explorer.MiscIcons, Icon = "Rename", DisabledIcon = "Rename_Disabled", Shortcut = "F2", OnClick = function()
+				context:Register("RENAME",{Name = "重命名", IconMap = Explorer.MiscIcons, Icon = "Rename", DisabledIcon = "Rename_Disabled", Shortcut = "F2", OnClick = function()
 					local sList = selection.List
 					if sList[1] then
 						Explorer.SetRenamingNode(sList[1])
 					end
 				end})
 
-				context:Register("GROUP",{Name = "Group", IconMap = Explorer.MiscIcons, Icon = "Group", DisabledIcon = "Group_Disabled", Shortcut = "Ctrl+G", OnClick = function()
+				context:Register("GROUP",{Name = "合组", IconMap = Explorer.MiscIcons, Icon = "Group", DisabledIcon = "Group_Disabled", Shortcut = "Ctrl+G", OnClick = function()
 					local sList = selection.List
 					if #sList == 0 then return end
 
@@ -1949,7 +1949,7 @@ local EmbeddedModules = {
 					end
 				end})
 
-				context:Register("UNGROUP",{Name = "Ungroup", IconMap = Explorer.MiscIcons, Icon = "Ungroup", DisabledIcon = "Ungroup_Disabled", Shortcut = "Ctrl+U", OnClick = function()
+				context:Register("UNGROUP",{Name = "解组", IconMap = Explorer.MiscIcons, Icon = "Ungroup", DisabledIcon = "Ungroup_Disabled", Shortcut = "Ctrl+U", OnClick = function()
 					local newSelection = {}
 					local count = 1
 					local isa = game.IsA
@@ -1986,7 +1986,7 @@ local EmbeddedModules = {
 					end
 				end})
 
-				context:Register("SELECT_CHILDREN",{Name = "Select Children", IconMap = Explorer.MiscIcons, Icon = "SelectChildren", DisabledIcon = "SelectChildren_Disabled", OnClick = function()
+				context:Register("SELECT_CHILDREN",{Name = "选择子项", IconMap = Explorer.MiscIcons, Icon = "SelectChildren", DisabledIcon = "SelectChildren_Disabled", OnClick = function()
 					local newSelection = {}
 					local count = 1
 					local sList = selection.List
@@ -2010,7 +2010,7 @@ local EmbeddedModules = {
 					end
 				end})
 
-				context:Register("JUMP_TO_PARENT",{Name = "Jump to Parent", IconMap = Explorer.MiscIcons, Icon = "JumpToParent", OnClick = function()
+				context:Register("JUMP_TO_PARENT",{Name = "跳转到父级", IconMap = Explorer.MiscIcons, Icon = "JumpToParent", OnClick = function()
 					local newSelection = {}
 					local count = 1
 					local sList = selection.List
@@ -2031,7 +2031,7 @@ local EmbeddedModules = {
 					end
 				end})
 
-				context:Register("TELEPORT_TO",{Name = "Teleport To", IconMap = Explorer.MiscIcons, Icon = "TeleportTo", OnClick = function()
+				context:Register("TELEPORT_TO",{Name = "传送到...", IconMap = Explorer.MiscIcons, Icon = "TeleportTo", OnClick = function()
 					local sList = selection.List
 					local plrRP = plr.Character and plr.Character:FindFirstChild("HumanoidRootPart")
 
@@ -2073,7 +2073,7 @@ local EmbeddedModules = {
 				end})
 
 				local OldAnimation
-				context:Register("PLAY_TWEEN",{Name = "Play Tween", IconMap = Explorer.MiscIcons, Icon = "Play", OnClick = function()
+				context:Register("PLAY_TWEEN",{Name = "播放Tween", IconMap = Explorer.MiscIcons, Icon = "Play", OnClick = function()
 					local sList = selection.List
 
 					for i = 1, #sList do
@@ -2085,7 +2085,7 @@ local EmbeddedModules = {
 				end})
 
 				local OldAnimation
-				context:Register("LOAD_ANIMATION",{Name = "Load Animation", IconMap = Explorer.MiscIcons, Icon = "Play", OnClick = function()
+				context:Register("LOAD_ANIMATION",{Name = "加载动画", IconMap = Explorer.MiscIcons, Icon = "Play", OnClick = function()
 					local sList = selection.List
 
 					local Humanoid = plr.Character and plr.Character:FindFirstChild("Humanoid")
@@ -2104,7 +2104,7 @@ local EmbeddedModules = {
 					end
 				end})
 
-				context:Register("STOP_ANIMATION",{Name = "Stop Animation", IconMap = Explorer.MiscIcons, Icon = "Pause", OnClick = function()
+				context:Register("STOP_ANIMATION",{Name = "停止动画", IconMap = Explorer.MiscIcons, Icon = "Pause", OnClick = function()
 					local sList = selection.List
 
 					local Humanoid = plr.Character and plr.Character:FindFirstChild("Humanoid")
@@ -2122,7 +2122,7 @@ local EmbeddedModules = {
 					end
 				end})
 
-				context:Register("EXPAND_ALL",{Name = "Expand All", OnClick = function()
+				context:Register("EXPAND_ALL",{Name = "全部展开", OnClick = function()
 					local sList = selection.List
 
 					local function expand(node)
@@ -2141,7 +2141,7 @@ local EmbeddedModules = {
 					Explorer.ForceUpdate()
 				end})
 
-				context:Register("COLLAPSE_ALL",{Name = "Collapse All", OnClick = function()
+				context:Register("COLLAPSE_ALL",{Name = "全部折叠", OnClick = function()
 					local sList = selection.List
 
 					local function expand(node)
@@ -2160,7 +2160,7 @@ local EmbeddedModules = {
 					Explorer.ForceUpdate()
 				end})
 
-				context:Register("CLEAR_SEARCH_AND_JUMP_TO",{Name = "Clear Search and Jump to", OnClick = function()
+				context:Register("CLEAR_SEARCH_AND_JUMP_TO",{Name = "清除搜索框及跳转到此实例", OnClick = function()
 					local newSelection = {}
 					local count = 1
 					local sList = selection.List
@@ -2184,7 +2184,7 @@ local EmbeddedModules = {
 					return str
 				end
 
-				context:Register("COPY_PATH",{Name = "Copy Path", IconMap = Explorer.LegacyClassIcons, Icon = 50, OnClick = function()
+				context:Register("COPY_PATH",{Name = "复制路径", IconMap = Explorer.LegacyClassIcons, Icon = 50, OnClick = function()
 					local sList = selection.List
 					if #sList == 1 then
 						env.setclipboard(clth(Explorer.GetInstancePath(sList[1].Obj)))
@@ -2203,7 +2203,7 @@ local EmbeddedModules = {
 					end
 				end})
 
-				context:Register("INSERT_OBJECT",{Name = "Insert Object", IconMap = Explorer.MiscIcons, Icon = "InsertObject", OnClick = function()
+				context:Register("INSERT_OBJECT",{Name = "插入实例", IconMap = Explorer.MiscIcons, Icon = "InsertObject", OnClick = function()
 					local mouse = Main.Mouse
 					local x,y = Explorer.LastRightClickX or mouse.X, Explorer.LastRightClickY or mouse.Y
 					Explorer.InsertObjectContext:Show(x,y)
@@ -2217,7 +2217,7 @@ local EmbeddedModules = {
 
 		end})]]
 
-				context:Register("SAVE_INST",{Name = "Save to File", IconMap = Explorer.MiscIcons, Icon = "Save", OnClick = function()
+				context:Register("SAVE_INST",{Name = "另存为文件", IconMap = Explorer.MiscIcons, Icon = "Save", OnClick = function()
 					local sList = selection.List
 					if #sList == 1 then
 						Lib.SaveAsPrompt("Place_"..game.PlaceId.."_"..sList[1].Obj.ClassName.."_"..sList[1].Obj.Name.."_"..os.time(), function(filename)
@@ -3376,7 +3376,7 @@ return search]==]
 
 				local window = Lib.Window.new()
 				Explorer.Window = window
-				window:SetTitle("Explorer")
+				window:SetTitle("文件管理器")
 				window.GuiElems.Line.Position = UDim2.new(0,0,0,22)
 
 				Explorer.InitEntryTemplate()
@@ -3937,12 +3937,12 @@ return search]==]
 					win = Lib.Window.new()
 					win.Alignable = false
 					win.Resizable = false
-					win:SetTitle("Save As")
+					win:SetTitle("保存为")
 					win:SetSize(300,95)
 
 					local saveButton = Lib.Button.new()
 					local nameLabel = Lib.Label.new()
-					nameLabel.Text = "Name"
+					nameLabel.Text = "名字"
 					nameLabel.Position = UDim2.new(0,30,0,10)
 					nameLabel.Size = UDim2.new(0,40,0,20)
 					win:Add(nameLabel)
@@ -3968,7 +3968,7 @@ return search]==]
 
 					local cancelButton = Lib.Button.new()
 					cancelButton.AnchorPoint = Vector2.new(1,1)
-					cancelButton.Text = "Cancel"
+					cancelButton.Text = "取消"
 					cancelButton.Position = UDim2.new(1,-5,1,-5)
 					cancelButton.Size = UDim2.new(0.5,-10,0,20)
 					cancelButton.OnClick:Connect(function()
@@ -3976,7 +3976,7 @@ return search]==]
 					end)
 					win:Add(cancelButton)
 
-					saveButton.Text = "Save"
+					saveButton.Text = "保存"
 					saveButton.AnchorPoint = Vector2.new(0,1)
 					saveButton.Position = UDim2.new(0,5,1,-5)
 					saveButton.Size = UDim2.new(0.5,-5,0,20)
@@ -3999,12 +3999,12 @@ return search]==]
 						if env.writefile then
 							local s, msg = pcall(env.writefile, filename, codeText)
 							if not s then
-								win.Elements.Error.Text = "Error: " .. msg
+								win.Elements.Error.Text = "错误: " .. msg
 								task.spawn(error, msg)
 								task.wait(1)
 							end
 						else
-							win.Elements.Error.Text = "Your executor does not support 'writefile'"
+							win.Elements.Error.Text = "你的注入器不支持读写文件（writefile）"
 							task.wait(1)
 						end
 					elseif type(codeToSave) == "function" then
@@ -4014,7 +4014,7 @@ return search]==]
 
 						local s, msg = pcall(codeToSave,filename) -- callback
 						if not s then
-							win.Elements.Error.Text = "Error: " .. msg
+							win.Elements.Error.Text = "错误: " .. msg
 							task.spawn(error, msg)
 							Lib.FastWait(1)
 						end
@@ -4022,7 +4022,7 @@ return search]==]
 					win:Close()
 				end
 
-				win:SetTitle("Save As")
+				win:SetTitle("保存为")
 				win.Elements.Error.Text = ""
 				win.Elements.NameBox:SetText(filename or "")
 
@@ -9183,7 +9183,7 @@ return search]==]
 					local window = Lib.Window.new()
 					window.Resizable = false
 					window.Alignable = false
-					window:SetTitle("Color Picker")
+					window:SetTitle("颜色选择器")
 					window:Resize(450,330)
 					for i,v in pairs(guiContents:GetChildren()) do
 						v.Parent = window.GuiElems.Content
@@ -9536,7 +9536,7 @@ return search]==]
 					local window = Lib.Window.new()
 					window.Resizable = false
 					window:Resize(680,265)
-					window:SetTitle("NumberSequence Editor")
+					window:SetTitle("数字范围选择器")
 					newMt.Window = window
 					newMt.Gui = window.Gui
 					for i,v in pairs(guiContents:GetChildren()) do
@@ -10039,7 +10039,7 @@ return search]==]
 					local window = Lib.Window.new()
 					window.Resizable = false
 					window:Resize(650,150)
-					window:SetTitle("ColorSequence Editor")
+					window:SetTitle("渐变颜色选择器")
 					newMt.Window = window
 					newMt.Gui = window.Gui
 					for i,v in pairs(guiContents:GetChildren()) do
@@ -10266,7 +10266,7 @@ return search]==]
 							local editor = newMt.ColorPicker
 							if not editor then
 								editor = Lib.ColorPicker.new()
-								editor.Window:SetTitle("ColorSequence Color Picker")
+								editor.Window:SetTitle("渐变颜色颜色选择器")
 
 								editor.OnSelect:Connect(function(col)
 									if currentPoint then
@@ -10563,13 +10563,13 @@ return search]==]
 								self.Selected = options[1]
 								self.GuiElems.Label.Text = options[1]
 							else
-								self.GuiElems.Label.Text = "- Select -"
+								self.GuiElems.Label.Text = "- 选择 -"
 							end
 						else
 							self.GuiElems.Label.Text = self.Selected
 						end
 					else
-						self.GuiElems.Label.Text = "- Select -"
+						self.GuiElems.Label.Text = "- 选择 -"
 					end
 				end
 
@@ -10820,7 +10820,7 @@ return search]==]
 					viewportFrame:ClearAllChildren()
 
 					ModelViewer.IsViewing = false
-					window:SetTitle("3D Preview")
+					window:SetTitle("3D预览")
 					pathLabel.Gui.Text = ""
 				end
 			end
@@ -10894,8 +10894,8 @@ return search]==]
 					camera.Parent = viewportFrame
 					camera.FieldOfView = 60
 
-					window:SetTitle(item.Name.." - 3D Preview")
-					pathLabel.Gui.Text = "path: " .. getPath(originalModel)
+					window:SetTitle(item.Name.." - 3D预览")
+					pathLabel.Gui.Text = "路径: " .. getPath(originalModel)
 					window:Show()
 					ModelViewer.IsViewing = true
 				end
@@ -10903,7 +10903,7 @@ return search]==]
 
 			ModelViewer.Init = function()
 				window = Lib.Window.new()
-				window:SetTitle("3D Preview")
+				window:SetTitle("3D预览")
 				window:Resize(350,200)
 				ModelViewer.Window =  window
 
@@ -11042,7 +11042,7 @@ return search]==]
 				context:Register("SAVE_INST",{Name = "Save to File", OnClick = function()
 					if model then
 						Lib.SaveAsPrompt("Place_"..game.PlaceId.."_"..originalModel.Name.."_"..os.time(), function(filename)
-							window:SetTitle(originalModel.Name.." - Model Viewer - Saving")	
+							window:SetTitle(originalModel.Name.." - 模型预览器 - 保存中")	
 
 							local success, result = pcall(env.saveinstance,
 								originalModel, filename,
@@ -11053,36 +11053,36 @@ return search]==]
 							)
 
 							if success then
-								window:SetTitle(originalModel.Name.." - Model Viewer - Saved")
+								window:SetTitle(originalModel.Name.." - 模型预览器 - 已保存")
 								context:Hide()
 								task.wait(5)
 								if model then
-									window:SetTitle(originalModel.Name.." - Model Viewer")
+									window:SetTitle(originalModel.Name.." - 模型预览器")
 								end
 							else
-								window:SetTitle(originalModel.Name.." - Model Viewer - Error")
+								window:SetTitle(originalModel.Name.." - 模型预览器 - 错误")
 								warn("Error while saving model: "..result)
 								context:Hide()
 								task.wait(5)
 								if model then
-									window:SetTitle(originalModel.Name.." - Model Viewer")
+									window:SetTitle(originalModel.Name.." - 模型预览器")
 								end
 							end
 						end)
 					end
 				end})
 
-				context:Register("ENABLE_AUTO_ROTATE",{Name = "Enable Auto Rotate", OnClick = function()
+				context:Register("ENABLE_AUTO_ROTATE",{Name = "启用自动旋转", OnClick = function()
 					ModelViewer.AutoRotate = true
 
 				end})
-				context:Register("DISABLE_AUTO_ROTATE",{Name = "Disable Auto Rotate", OnClick = function()
+				context:Register("DISABLE_AUTO_ROTATE",{Name = "禁用自动旋转", OnClick = function()
 					ModelViewer.AutoRotate = false
 				end})
-				context:Register("LOCK_CAM",{Name = "Lock Camera", OnClick = function()
+				context:Register("LOCK_CAM",{Name = "锁定相机", OnClick = function()
 					ModelViewer.EnableInputCamera = false
 				end})
-				context:Register("UNLOCK_CAM",{Name = "Unlock Camera", OnClick = function()
+				context:Register("UNLOCK_CAM",{Name = "解锁相机", OnClick = function()
 					ModelViewer.EnableInputCamera = true
 				end})
 
@@ -12114,12 +12114,12 @@ return search]==]
 					win = Lib.Window.new()
 					win.Alignable = false
 					win.Resizable = false
-					win:SetTitle("Add Attribute")
+					win:SetTitle("添加属性")
 					win:SetSize(200,130)
 
 					local saveButton = Lib.Button.new()
 					local nameLabel = Lib.Label.new()
-					nameLabel.Text = "Name"
+					nameLabel.Text = "名字"
 					nameLabel.Position = UDim2.new(0,30,0,10)
 					nameLabel.Size = UDim2.new(0,40,0,20)
 					win:Add(nameLabel)
@@ -12133,7 +12133,7 @@ return search]==]
 					end)
 
 					local typeLabel = Lib.Label.new()
-					typeLabel.Text = "Type"
+					typeLabel.Text = "类型"
 					typeLabel.Position = UDim2.new(0,30,0,40)
 					typeLabel.Size = UDim2.new(0,40,0,20)
 					win:Add(typeLabel)
@@ -12154,7 +12154,7 @@ return search]==]
 					win:Add(errorLabel,"Error")
 
 					local cancelButton = Lib.Button.new()
-					cancelButton.Text = "Cancel"
+					cancelButton.Text = "取消"
 					cancelButton.Position = UDim2.new(1,-97,1,-25)
 					cancelButton.Size = UDim2.new(0,92,0,20)
 					cancelButton.OnClick:Connect(function()
@@ -12162,16 +12162,16 @@ return search]==]
 					end)
 					win:Add(cancelButton)
 
-					saveButton.Text = "Save"
+					saveButton.Text = "保存"
 					saveButton.Position = UDim2.new(0,5,1,-25)
 					saveButton.Size = UDim2.new(0,92,0,20)
 					saveButton.OnClick:Connect(function()
 						local name = nameBox:GetText()
 						if #name > 100 then
-							errorLabel.Text = "Error: Name over 100 chars"
+							errorLabel.Text = "错误: 名字大于100个字符"
 							return
 						elseif name:sub(1,3) == "RBX" then
-							errorLabel.Text = "Error: Name begins with 'RBX'"
+							errorLabel.Text = "错误: 名字含有'RBX'"
 							return
 						end
 
@@ -12190,7 +12190,7 @@ return search]==]
 				end
 
 				Properties.EditingAttribute = editAttr
-				win:SetTitle(editAttr and "Edit Attribute "..editAttr.AttributeName or "Add Attribute")
+				win:SetTitle(editAttr and "编辑属性 "..editAttr.AttributeName or "添加属性")
 				win.Elements.Error.Text = ""
 				win.Elements.NameBox:SetText("")
 				win.Elements.SaveButton:SetDisabled(true)
@@ -12600,12 +12600,200 @@ return search]==]
 							propNameLabel.Size = UDim2.new(1,-2 - (scaleType == 0 and 0 or 6),1,0)
 
 							local gName = (prop.CategoryName and "CAT_"..prop.CategoryName) or prop.Class.."."..prop.Name..(prop.SubName or "")
-
+							local function ToChinese(string)
+								local chinesetable = {
+									Transparency = "透明度",
+									Position = "位置",
+									Size = "尺寸",
+									Rotation = "旋转",
+									Anchored = "锚固",
+									CanCollide = "碰撞",
+									Color = "颜色",
+									Material = "材质",
+									Reflectance = "反射率",
+									Name = "名称",
+									Parent = "父级",
+									Visible = "可见性",
+									Locked = "锁定",
+									Enabled = "启用",
+									Value = "值",
+									Text = "文本",
+									Font = "字体",
+									TextSize = "文本大小",
+									TextColor3 = "文本颜色",
+									BackgroundColor3 = "背景颜色",
+									BorderColor3 = "边框颜色",
+									BorderSizePixel = "边框大小",
+									BackgroundTransparency = "背景透明度",
+									Image = "图像",
+									ImageColor3 = "图像颜色",
+									ImageTransparency = "图像透明度",
+									ScaleType = "缩放类型",
+									SliceScale = "切片缩放",
+									Source = "源",
+									Volume = "音量",
+									PlaybackSpeed = "播放速度",
+									Looped = "循环播放",
+									Playing = "正在播放",
+									Pitch = "音高",
+									MaxDistance = "最大距离",
+									MinDistance = "最小距离",
+									Brightness = "亮度",
+									Shadows = "阴影",
+									Range = "范围",
+									Angle = "角度",
+									Face = "面",
+									Shape = "形状",
+									Friction = "摩擦力",
+									Elasticity = "弹性",
+									WalkSpeed = "行走速度",
+									JumpPower = "跳跃力量",
+									Health = "生命值",
+									MaxHealth = "最大生命值",
+									TeamColor = "队伍颜色",
+									DataCost = "数据成本",
+									PhysicsSenderRate = "物理发送速率",
+									NetworkOwner = "网络所有者",
+									Velocity = "速度",
+									CFrame = "坐标系",
+									Orientation = "方向",
+									PivotOffset = "枢轴偏移",
+									CastShadow = "阴影",
+									CollisionGroup = "碰撞组",
+									Mass = "质量",
+									CenterOfMass = "质心",
+									AssemblyLinearVelocity = "组合线性速度",
+									AssemblyAngularVelocity = "组合角速度",
+									MeshType = "网格类型",
+									Offset = "偏移",
+									TextureID = "纹理ID",
+									StudsPerText = "每文本格数",
+									ZIndex = "Z索引",
+									AutoButtonColor = "自动按钮颜色",
+									Modal = "模态",
+									Selected = "已选中",
+									Active = "活跃",
+									Adornee = "装饰对象",
+									AlwaysOnTop = "始终置顶",
+									ExtentsOffset = "范围偏移",
+									StudsOffset = "格数偏移",
+									StudsOffsetWorldSpace = "世界空间格数偏移",
+									LightColor = "灯光颜色",
+									LightDirection = "灯光方向",
+									SpotAngle = "聚光角度",
+									TimeScale = "时间缩放",
+									Throttle = "节流阀",
+									CameraType = "摄像机类型",
+									FieldOfView = "视野",
+									Focus = "焦点",
+									MaxActivationDistance = "最大激活距离",
+									Origin = "原点",
+									Axis = "轴",
+									SecondaryAxis = "副轴",
+									PrimaryAxisOnly = "仅主轴",
+									RelativeTo = "相对于",
+									WorldRelative = "世界相对",
+									Heat = "热量",
+									MaxTorque = "最大扭矩",
+									TargetPosition = "目标位置",
+									TargetOrientation = "目标方向",
+									CurrentPosition = "当前位置",
+									CurrentOrientation = "当前方向",
+									Servo = "伺服",
+									LimitsEnabled = "限制已启用",
+									UpperLimit = "上限",
+									LowerLimit = "下限",
+									Restitution = "恢复系数",
+									ContactDistance = "接触距离",
+									MaxForce = "最大力",
+									MaxVelocity = "最大速度",
+									DesiredAngle = "期望角度",
+									CurrentAngle = "当前角度",
+									MaxAngle = "最大角度",
+									MinAngle = "最小角度",
+									Radius = "半径",
+									Height = "高度",
+									NumSides = "边数",
+									HoleSize = "孔洞尺寸",
+									Bevel = "倒角",
+									Bevel_Roundness = "倒角圆度",
+									MeshId = "网格ID",
+									Texture = "纹理",
+									FaceId = "面ID",
+									Weld = "焊接",
+									C0 = "初始坐标系偏移",
+									C1 = "目标坐标系偏移",
+									Part0 = "部件0",
+									Part1 = "部件1",
+									Surface = "表面",
+									SurfaceInput = "表面输入",
+									InOut = "输入输出",
+									RightParamA = "右参数A",
+									RightParamB = "右参数B",
+									LeftParamA = "左参数A",
+									LeftParamB = "左参数B",
+									FrontParamA = "前参数A",
+									FrontParamB = "前参数B",
+									BackParamA = "后参数A",
+									BackParamB = "后参数B",
+									TopParamA = "顶参数A",
+									TopParamB = "顶参数B",
+									BottomParamA = "底参数A",
+									BottomParamB = "底参数B",
+									RightSurface = "右表面",
+									LeftSurface = "左表面",
+									FrontSurface = "前表面",
+									BackSurface = "后表面",
+									TopSurface = "顶表面",
+									BottomSurface = "底表面",
+									RightSurfaceInput = "右表面输入",
+									LeftSurfaceInput = "左表面输入",
+									FrontSurfaceInput = "前表面输入",
+									BackSurfaceInput = "后表面输入",
+									TopSurfaceInput = "顶表面输入",
+									BottomSurfaceInput = "底表面输入",
+									FormFactor = "形态因素",
+									ElasticityWeight = "弹性权重",
+									FrictionWeight = "摩擦权重",
+									IsPaused = "已暂停",
+									IsPlaying = "正在播放",
+									Length = "长度",
+									TimePosition = "时间位置",
+									CustomPhysicalProperties = "自定义物理属性",
+									Density = "密度",
+									AreHingesDetected = "检测到铰链",
+									AreAnchorsShown = "显示锚点",
+									IsRotationShowing = "显示旋转",
+									IsNetworkOwner = "是网络所有者",
+									IsSleeping = "正在休眠",
+									NetworkIsSleeping = "网络正在休眠",
+									ReceiveAge = "接收年龄",
+									RenderFidelity = "渲染保真度",
+									ResizeIncrement = "调整增量",
+									ResizableFaces = "可调整面",
+									RightLeft = "左右",
+									RootPriority = "根优先级",
+									RotVelocity = "旋转速度",
+									Throttling = "节流",
+									TopBottom = "顶底",
+									FrontBack = "前后",
+									Archivable = "可存档",
+									WorldPivot = "世界枢轴",
+									AssemblyCenterOfMass = "组合质心",
+									AssemblyMass = "组合质量",
+									AssemblyPosition = "组合位置",
+									AssemblyRotation = "组合旋转",
+									AssemblySize = "组合尺寸",
+									AssemblyVelocity = "组合速度",
+								}
+								return chinesetable[string] or string
+							end
+							
 							if prop.CategoryName then
 								entry.BackgroundColor3 = Settings.Theme.Main1
 								valueFrame.Visible = false
 
-								propNameBox.Text = prop.CategoryName
+								propNameBox.Text = ToChinese(prop.CategoryName)
 								propNameBox.Font = Enum.Font.SourceSansBold
 								expand.Visible = true
 								propNameBox.TextColor3 = Settings.Theme.Text
@@ -12615,7 +12803,7 @@ return search]==]
 
 								local showingAttrs = Settings.Properties.ShowAttributes
 								toggleAttributes.Position = UDim2.new(1,-85-leftOffset,0,0)
-								toggleAttributes.Text = (showingAttrs and "[Setting: ON]" or "[Setting: OFF]")
+								toggleAttributes.Text = (showingAttrs and "[设置: 开]" or "[设置: 关]")
 								toggleAttributes.TextColor3 = Settings.Theme.Text
 								toggleAttributes.Visible = (prop.CategoryName == "Attributes")
 							else
@@ -12641,7 +12829,7 @@ return search]==]
 								end
 
 								local nameArr = stringSplit(gName,".")
-								propNameBox.Text = prop.DisplayName or nameArr[#nameArr]
+								propNameBox.Text = ToChinese(prop.DisplayName or nameArr[#nameArr])
 								propNameBox.Font = Enum.Font.SourceSans
 								entry.BackgroundColor3 = Settings.Theme.Main2
 								valueFrame.Visible = true
@@ -13006,7 +13194,7 @@ return search]==]
 				-- Init window
 				window = Lib.Window.new()
 				Properties.Window = window
-				window:SetTitle("Properties")
+				window:SetTitle("属性")
 
 				toolBar = guiItems.ToolBar
 				propsFrame = guiItems.List
@@ -13208,7 +13396,7 @@ return search]==]
 
 			SaveInstance.Init = function()
 				window = Lib.Window.new()
-				window:SetTitle("Save Instance")
+				window:SetTitle("保存游戏（Save Instance）")
 				window:Resize(350,350)
 				SaveInstance.Window = window
 
@@ -13351,12 +13539,12 @@ return search]==]
 				FilenameTextBox.TextBox.Text = fileName
 				Button.MouseButton1Click:Connect(function()
 					local fileName = FilenameTextBox.TextBox.Text:gsub("{TIMESTAMP}", os.date("%d-%m-%Y_%H-%M-%S"))
-					window:SetTitle("Save Instance - Saving")
+					window:SetTitle("Save Instance - 保存中")
 					local s, result = pcall(env.saveinstance, game, fileName, SaveInstanceArgs)
 					if s then
-						window:SetTitle("Save Instance - Saved")
+						window:SetTitle("Save Instance - 已保存")
 					else
-						window:SetTitle("Save Instance - Error")
+						window:SetTitle("Save Instance - 错误")
 						task.spawn(error("Failed to save the game: "..result))
 					end
 					task.wait(5)
@@ -13524,7 +13712,7 @@ return search]==]
 
 			ScriptViewer.Init = function()
 				window = Lib.Window.new()
-				window:SetTitle("Notepad")
+				window:SetTitle("笔记")
 				window:Resize(500,400)
 				ScriptViewer.Window = window
 
@@ -13537,7 +13725,7 @@ return search]==]
 				copy.BackgroundTransparency = 1
 				copy.Size = UDim2.new(0.33,0,0,20)
 				copy.Position = UDim2.new(0,0,0,0)
-				copy.Text = "Copy to Clipboard"
+				copy.Text = "复制到剪切板"
 
 				if env.setclipboard then
 					copy.TextColor3 = Color3.new(1,1,1)
@@ -13556,7 +13744,7 @@ return search]==]
 				save.BackgroundTransparency = 1
 				save.Size = UDim2.new(0.33,0,0,20)
 				save.Position = UDim2.new(0.33,0,0,0)
-				save.Text = "Save to File"
+				save.Text = "另存为文件"
 				save.TextColor3 = Color3.new(1,1,1)
 
 				if env.writefile then
@@ -13579,7 +13767,7 @@ return search]==]
 				dumpbtn.BackgroundTransparency = 1
 				dumpbtn.Position = UDim2.new(0.7,0,0,0)
 				dumpbtn.Size = UDim2.new(0.3,0,0,20)
-				dumpbtn.Text = "Dump Functions"
+				dumpbtn.Text = "转储函数"
 				dumpbtn.TextColor3 = Color3.new(0.5,0.5,0.5)
 
 				if env.getgc then
@@ -13603,7 +13791,7 @@ return search]==]
 				execute.BackgroundTransparency = 1
 				execute.Size = UDim2.new(0.5,0,0,20)
 				execute.Position = UDim2.new(0,0,1,-20)
-				execute.Text = "Execute"
+				execute.Text = "执行"
 				execute.TextColor3 = Color3.new(1,1,1)
 
 				if env.loadstring then
@@ -13623,7 +13811,7 @@ return search]==]
 				clear.BackgroundTransparency = 1
 				clear.Size = UDim2.new(0.5,0,0,20)
 				clear.Position = UDim2.new(0.5,0,1,-20)
-				clear.Text = "Clear"
+				clear.Text = "清除"
 				clear.TextColor3 = Color3.new(1,1,1)
 
 				clear.MouseButton1Click:Connect(function()
@@ -14930,7 +15118,7 @@ Main = (function()
 	Main.SetMainGuiOpen = function(val)
 		Main.MainGuiOpen = val
 
-		Main.MainGui.OpenButton.Text = val and "Close" or "Dex++"
+		Main.MainGui.OpenButton.Text = val and "关闭" or "Dex++"
 		if val then Main.MainGui.OpenButton.MainFrame.Visible = true end
 		Main.MainGui.OpenButton.MainFrame:TweenSize(val and UDim2.new(0,224,0,200) or UDim2.new(0,0,0,0),Enum.EasingDirection.Out,Enum.EasingStyle.Quad,0.2,true)
 		--Main.MainGui.OpenButton.BackgroundTransparency = val and 0 or (Lib.CheckMouseInGui(Main.MainGui.OpenButton) and 0 or 0.2)
@@ -15017,12 +15205,13 @@ Main = (function()
 				"Toon (IY Dex and PRs)",
 				"Moon (Dex)",
 				"Cazan (3D Preview)",
+				"辟邪（改编，汉化）",
 			}
 
 			if isInfoCD then return end
 			isInfoCD = true
 			if not infoDexIntro then
-				infoDexIntro = Main.CreateIntro("Running")
+				infoDexIntro = Main.CreateIntro("运行中")
 
 				coroutine.wrap(function()
 					while infoDexIntro do
@@ -15048,12 +15237,12 @@ Main = (function()
 		end)
 
 		-- Create Main Apps
-		Main.CreateApp({Name = "Explorer", IconMap = Main.LargeIcons, Icon = "Explorer", Open = true, Window = Explorer.Window})
+		Main.CreateApp({Name = "文件管理器", IconMap = Main.LargeIcons, Icon = "Explorer", Open = true, Window = Explorer.Window})
 
-		Main.CreateApp({Name = "Properties", IconMap = Main.LargeIcons, Icon = "Properties", Open = true, Window = Properties.Window})
+		Main.CreateApp({Name = "属性", IconMap = Main.LargeIcons, Icon = "Properties", Open = true, Window = Properties.Window})
 
 		local cptsOnMouseClick = nil
-		Main.CreateApp({Name = "Click part to select", IconMap = Main.LargeIcons, Icon = 6, OnClick = function(callback)
+		Main.CreateApp({Name = "点击以选择物体", IconMap = Main.LargeIcons, Icon = 6, OnClick = function(callback)
 			if callback then
 				local mouse = Main.Mouse
 				cptsOnMouseClick = mouse.Button1Down:Connect(function()
@@ -15068,13 +15257,13 @@ Main = (function()
 			else if cptsOnMouseClick ~= nil then cptsOnMouseClick:Disconnect() cptsOnMouseClick = nil end end
 		end})
 
-		Main.CreateApp({Name = "Notepad", IconMap = Main.LargeIcons, Icon = "Script_Viewer", Window = ScriptViewer.Window})
+		Main.CreateApp({Name = "笔记", IconMap = Main.LargeIcons, Icon = "Script_Viewer", Window = ScriptViewer.Window})
 
-		Main.CreateApp({Name = "Console", IconMap = Main.LargeIcons, Icon = "Output", Window = Console.Window})
+		Main.CreateApp({Name = "控制台", IconMap = Main.LargeIcons, Icon = "Output", Window = Console.Window})
 
-		Main.CreateApp({Name = "Save Instance", IconMap = Main.LargeIcons, Icon = "Watcher", Window = SaveInstance.Window})
+		Main.CreateApp({Name = "保存游戏（Save Instance）", IconMap = Main.LargeIcons, Icon = "Watcher", Window = SaveInstance.Window})
 
-		Main.CreateApp({Name = "3D Viewer", IconMap = Explorer.LegacyClassIcons, Icon = 54, Window = ModelViewer.Window})
+		Main.CreateApp({Name = "3D查看器", IconMap = Explorer.LegacyClassIcons, Icon = 54, Window = ModelViewer.Window})
 
 		--Main.CreateApp({Name = "Secret Service Panel", IconMap = Main.LargeIcons, Icon = "Output", Window = SecretServicePanel.Window})
 
@@ -15111,7 +15300,7 @@ Main = (function()
 		Main.SetupFilesystem()
 
 		-- Load Lib
-		local intro = Main.CreateIntro("Initializing Library")
+		local intro = Main.CreateIntro("初始化库")
 		Lib = Main.LoadModule("Lib")
 		Lib.FastWait()
 
@@ -15141,7 +15330,7 @@ Main = (function()
 		pcall(Main.LoadGCBypass)]]
 
 		-- Fetch version if needed
-		intro.SetProgress("Fetching Roblox Version",0.3)
+		intro.SetProgress("注入Roblox版本",0.3)
 		if Main.Elevated then
 			local fileVer = Lib.ReadFile("dex/deps_version.dat")
 			Main.ClientVersion = Version()
@@ -15156,7 +15345,7 @@ Main = (function()
 		end
 
 		-- Fetch external deps
-		intro.SetProgress("Fetching API",0.35)
+		intro.SetProgress("注入API",0.35)
 		API = Main.FetchAPI(
 			function()
 				intro.SetProgress("Fetching API, Please Wait.",0.4)
@@ -15169,7 +15358,7 @@ Main = (function()
 			end
 		)
 		Lib.FastWait()
-		intro.SetProgress("Fetching RMD",0.5)
+		intro.SetProgress("注入RMD",0.5)
 		RMD = Main.FetchRMD()
 		Lib.FastWait()
 
@@ -15187,7 +15376,7 @@ Main = (function()
 		Lib.FastWait()
 
 		-- Init other modules
-		intro.SetProgress("Initializing Modules",0.9)
+		intro.SetProgress("初始化模块",0.9)
 		Explorer.Init()
 		Properties.Init()
 		ScriptViewer.Init()
@@ -15200,7 +15389,7 @@ Main = (function()
 		Lib.FastWait()
 
 		-- Done
-		intro.SetProgress("Complete",1)
+		intro.SetProgress("加载完成",1)
 		coroutine.wrap(function()
 			Lib.FastWait(1.25)
 			intro.Close()
