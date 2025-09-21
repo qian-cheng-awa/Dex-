@@ -1,5 +1,4 @@
 --[[
-
 	Dex++
 	Version 2.2
 	
@@ -13849,6 +13848,9 @@ return search]==]
 					oldtick = nil
 					decompiled = nil
 				end
+				
+				codeFrame:SetText(str)
+				window:Show()
 			end
 			ScriptViewer.ViewScript = function(scr)
 				local oldtick = tick()
