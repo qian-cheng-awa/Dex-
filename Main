@@ -1241,9 +1241,9 @@ local EmbeddedModules = {
 					end
 					for i = 1,#root do
 						local n = root[i]
-						
+
 						if (isSearching and not searchResults[n]) or n.Del then continue end
-						
+
 						if useNameWidth then
 							local nameWidth = n.NameWidth
 							if not nameWidth then
@@ -1267,12 +1267,12 @@ local EmbeddedModules = {
 						end
 					end
 				end
-				
+
 				--[[for i,v in pairs(nodes[game]) do
 					print(v.Obj,#v)
 				end]]
 				recur(nodes[game],1)
-				
+
 
 				-- Nil Instances
 				if env.getnilinstances then
@@ -1284,7 +1284,7 @@ local EmbeddedModules = {
 						end
 					end
 				end
-				
+
 				Explorer.MaxNameWidth = maxNameWidth
 				Explorer.MaxDepth = maxDepth
 				Explorer.ViewWidth = useNameWidth and Explorer.EntryIndent*maxDepth + maxNameWidth + 26 or Explorer.EntryIndent*maxDepth + 226
@@ -2253,7 +2253,7 @@ local EmbeddedModules = {
 					BindableRemote = "Fire",
 					BindableFunction = "Invoke",
 				}
-				context:Register("BLOCK_REMOTE",{Name = "Block From Firing", IconMap = Explorer.MiscIcons, Icon = "Delete", DisabledIcon = "Empty", OnClick = function()
+				context:Register("BLOCK_REMOTE",{Name = "阻止远程事件", IconMap = Explorer.MiscIcons, Icon = "Delete", DisabledIcon = "Empty", OnClick = function()
 					local sList = selection.List
 					for i, list in sList do
 						local obj = list.Obj
@@ -2274,7 +2274,7 @@ local EmbeddedModules = {
 					end
 				end})
 
-				context:Register("UNBLOCK_REMOTE",{Name = "Unblock", IconMap = Explorer.MiscIcons, Icon = "Play", DisabledIcon = "Empty", OnClick = function()
+				context:Register("UNBLOCK_REMOTE",{Name = "取消阻止", IconMap = Explorer.MiscIcons, Icon = "Play", DisabledIcon = "Empty", OnClick = function()
 					local sList = selection.List
 					for i, list in sList do
 						local obj = list.Obj
@@ -2288,7 +2288,7 @@ local EmbeddedModules = {
 					end
 				end})
 
-				context:Register("COPY_API_PAGE",{Name = "Copy Roblox API Page URL", IconMap = Explorer.MiscIcons, Icon = "Reference", OnClick = function()
+				context:Register("COPY_API_PAGE",{Name = "复制roblox api链接", IconMap = Explorer.MiscIcons, Icon = "Reference", OnClick = function()
 					local sList = selection.List
 					if #sList == 1 then
 						env.setclipboard(
@@ -2297,7 +2297,7 @@ local EmbeddedModules = {
 					end
 				end})
 
-				context:Register("3DVIEW_MODEL",{Name = "3D Preview Object", IconMap = Explorer.LegacyClassIcons, Icon = 54, OnClick = function()
+				context:Register("3DVIEW_MODEL",{Name = "3D预览此模型", IconMap = Explorer.LegacyClassIcons, Icon = 54, OnClick = function()
 					local sList = selection.List
 					local isa = game.IsA
 
@@ -2309,7 +2309,7 @@ local EmbeddedModules = {
 					end
 				end})
 
-				context:Register("VIEW_OBJECT",{Name = "View Object (Right click to reset)", IconMap = Explorer.LegacyClassIcons, Icon = 5, OnClick = function()
+				context:Register("VIEW_OBJECT",{Name = "查看模型 (鼠标右键点击恢复)", IconMap = Explorer.LegacyClassIcons, Icon = 5, OnClick = function()
 					local sList = selection.List
 					local isa = game.IsA
 
@@ -2325,39 +2325,39 @@ local EmbeddedModules = {
 					workspace.CurrentCamera.CameraSubject = plr.Character
 				end})
 
-				context:Register("VIEW_SCRIPT",{Name = "View Script", IconMap = Explorer.MiscIcons, Icon = "ViewScript", DisabledIcon = "Empty", OnClick = function()
+				context:Register("VIEW_SCRIPT",{Name = "查看脚本（反编译）", IconMap = Explorer.MiscIcons, Icon = "ViewScript", DisabledIcon = "Empty", OnClick = function()
 					local scr = selection.List[1] and selection.List[1].Obj
 					if scr then ScriptViewer.ViewScript(scr) end
 				end})
-				context:Register("DUMP_FUNCTIONS",{Name = "Dump Functions", IconMap = Explorer.MiscIcons, Icon = "SelectChildren", DisabledIcon = "Empty", OnClick = function()
+				context:Register("DUMP_FUNCTIONS",{Name = "转储函数", IconMap = Explorer.MiscIcons, Icon = "SelectChildren", DisabledIcon = "Empty", OnClick = function()
 					local scr = selection.List[1] and selection.List[1].Obj
 					if scr then ScriptViewer.DumpFunctions(scr) end
 				end})
 
-				context:Register("FIRE_TOUCHTRANSMITTER",{Name = "Fire TouchTransmitter", OnClick = function()
+				context:Register("FIRE_TOUCHTRANSMITTER",{Name = "触发触碰事件（TouchTransmitter）", OnClick = function()
 					local hrp = plr.Character and plr.Character:FindFirstChild("HumanoidRootPart")
 					if not hrp then return end
 					for _, v in ipairs(selection.List) do if v.Obj and v.Obj:IsA("TouchTransmitter") then firetouchinterest(hrp, v.Obj.Parent, 0) end end
 				end})
 
-				context:Register("FIRE_CLICKDETECTOR",{Name = "Fire ClickDetector", OnClick = function()
+				context:Register("FIRE_CLICKDETECTOR",{Name = "触发点击事件（ClickDetector）", OnClick = function()
 					local hrp = plr.Character and plr.Character:FindFirstChild("HumanoidRootPart")
 					if not hrp then return end
 					for _, v in ipairs(selection.List) do if v.Obj and v.Obj:IsA("ClickDetector") then fireclickdetector(v.Obj) end end
 				end})
 
-				context:Register("FIRE_PROXIMITYPROMPT",{Name = "Fire ProximityPrompt", OnClick = function()
+				context:Register("FIRE_PROXIMITYPROMPT",{Name = "触发互动（ProximityPrompt）", OnClick = function()
 					local hrp = plr.Character and plr.Character:FindFirstChild("HumanoidRootPart")
 					if not hrp then return end
 					for _, v in ipairs(selection.List) do if v.Obj and v.Obj:IsA("ProximityPrompt") then fireproximityprompt(v.Obj) end end
 				end})
 
-				context:Register("VIEW_SCRIPT",{Name = "View Script", IconMap = Explorer.MiscIcons, Icon = "ViewScript", DisabledIcon = "Empty", OnClick = function()
+				context:Register("VIEW_SCRIPT",{Name = "查看脚本（反编译）", IconMap = Explorer.MiscIcons, Icon = "ViewScript", DisabledIcon = "Empty", OnClick = function()
 					local scr = selection.List[1] and selection.List[1].Obj
 					if scr then ScriptViewer.ViewScript(scr) end
 				end})
 
-				context:Register("SAVE_SCRIPT",{Name = "Save Script", IconMap = Explorer.MiscIcons, Icon = "Save", DisabledIcon = "Empty", OnClick = function()
+				context:Register("SAVE_SCRIPT",{Name = "保存脚本", IconMap = Explorer.MiscIcons, Icon = "Save", DisabledIcon = "Empty", OnClick = function()
 					for _, v in next, selection.List do
 						if v.Obj:IsA("LuaSourceContainer") and env.isViableDecompileScript(v.Obj) then
 							local success, source = pcall(env.decompile, v.Obj)
@@ -2371,7 +2371,7 @@ local EmbeddedModules = {
 					end
 				end})
 
-				context:Register("SAVE_BYTECODE",{Name = "Save Script Bytecode", IconMap = Explorer.MiscIcons, Icon = "Save", DisabledIcon = "Empty", OnClick = function()
+				context:Register("SAVE_BYTECODE",{Name = "保存脚本字节码", IconMap = Explorer.MiscIcons, Icon = "Save", DisabledIcon = "Empty", OnClick = function()
 					for _, v in next, selection.List do
 						if v.Obj:IsA("LuaSourceContainer") and env.isViableDecompileScript(v.Obj) then
 							local success, bytecode = pcall(env.getscriptbytecode, v.Obj)
@@ -2385,7 +2385,7 @@ local EmbeddedModules = {
 					end
 				end})
 
-				context:Register("SELECT_CHARACTER",{Name = "Select Character", IconMap = Explorer.LegacyClassIcons, Icon = 9, OnClick = function()
+				context:Register("SELECT_CHARACTER",{Name = "选择玩家模型", IconMap = Explorer.LegacyClassIcons, Icon = 9, OnClick = function()
 					local newSelection = {}
 					local count = 1
 					local sList = selection.List
@@ -2407,7 +2407,7 @@ local EmbeddedModules = {
 					end
 				end})
 
-				context:Register("VIEW_PLAYER",{Name = "View Player", IconMap = Explorer.LegacyClassIcons, Icon = 5, OnClick = function()
+				context:Register("VIEW_PLAYER",{Name = "查看玩家", IconMap = Explorer.LegacyClassIcons, Icon = 5, OnClick = function()
 					local newSelection = {}
 					local count = 1
 					local sList = selection.List
@@ -2423,11 +2423,11 @@ local EmbeddedModules = {
 					end
 				end})
 
-				context:Register("SELECT_LOCAL_PLAYER",{Name = "Select Local Player", IconMap = Explorer.LegacyClassIcons, Icon = 9, OnClick = function()
+				context:Register("SELECT_LOCAL_PLAYER",{Name = "选择本地玩家", IconMap = Explorer.LegacyClassIcons, Icon = 9, OnClick = function()
 					pcall(function() if nodes[plr] then selection:Set(nodes[plr]) Explorer.ViewNode(nodes[plr]) end end)
 				end})
 
-				context:Register("SELECT_ALL_CHARACTERS",{Name = "Select All Characters", IconMap = Explorer.LegacyClassIcons, Icon = 2, OnClick = function()
+				context:Register("SELECT_ALL_CHARACTERS",{Name = "选择所有玩家模型", IconMap = Explorer.LegacyClassIcons, Icon = 2, OnClick = function()
 					local newSelection = {}
 					local sList = selection.List
 
@@ -2446,11 +2446,11 @@ local EmbeddedModules = {
 					end
 				end})
 
-				context:Register("REFRESH_NIL",{Name = "Refresh Nil Instances", OnClick = function()
+				context:Register("REFRESH_NIL",{Name = "刷新", OnClick = function()
 					Explorer.RefreshNilInstances()
 				end})
 
-				context:Register("HIDE_NIL",{Name = "Hide Nil Instances", OnClick = function()
+				context:Register("HIDE_NIL",{Name = "隐藏", OnClick = function()
 					Explorer.HideNilInstances()
 				end})
 
@@ -3418,7 +3418,7 @@ return search]==]
 				autoUpdateSearch = Settings.Explorer.AutoUpdateSearch
 
 				-- Fill in nodes
-				
+
 				nodes[game] = {
 					Obj = game,
 				}
@@ -3435,7 +3435,7 @@ return search]==]
 				for i,v in pairs(getDescendants(gethui())) do
 					insts[#insts+1] = v
 				end
-				
+
 				if Main.Elevated then
 					for i = 1,#insts do
 						local obj = insts[i]
@@ -13257,22 +13257,22 @@ return search]==]
 
 				-- Options
 
-				local Decompile = AddCheckbox("Decompile Scripts (LocalScript and ModuleScript)", SaveInstanceArgs.Decompile)
+				local Decompile = AddCheckbox("反编译（本地脚本，模块脚本）", SaveInstanceArgs.Decompile)
 				Decompile.OnInput:Connect(function()
 					SaveInstanceArgs.Decompile = Decompile.Toggled
 				end)
 
-				local decompileTimeout = AddTextbox("Decompile Timeout (s)", SaveInstanceArgs.DecompileTimeout, 15)
+				local decompileTimeout = AddTextbox("反编译超时时间（秒）", SaveInstanceArgs.DecompileTimeout, 15)
 				decompileTimeout.TextBox.FocusLost:Connect(function()
 					SaveInstanceArgs.DecompileTimeout = tonumber(decompileTimeout.TextBox.Text)
 				end)
 
-				local decompileThread = AddTextbox("Decompiler Max Threads", "3", 15)
+				local decompileThread = AddTextbox("反编译最大线程（同时进行多少个）", "3", 15)
 				decompileThread.TextBox.FocusLost:Connect(function()
 					SaveInstanceArgs.MaxThreads = tonumber(decompileThread.TextBox.Text)
 				end)
 
-				local decompileIgnore = AddTextbox("Decompile Ignore", table.concat(SaveInstanceArgs.DecompileIgnore, ","), 50)
+				local decompileIgnore = AddTextbox("反编译忽略", table.concat(SaveInstanceArgs.DecompileIgnore, ","), 50)
 				decompileIgnore.TextBox.FocusLost:Connect(function()
 					local inputText = decompileIgnore.TextBox.Text
 					local rawList = string.split(inputText, ", ") or string.split(inputText, ",")
@@ -13288,32 +13288,32 @@ return search]==]
 				end)
 
 
-				local NilObj = AddCheckbox("Save Nil Instances", SaveInstanceArgs.NilInstances)
+				local NilObj = AddCheckbox("保存父级为nil的实例", SaveInstanceArgs.NilInstances)
 				NilObj.OnInput:Connect(function()
 					SaveInstanceArgs.NilInstances = NilObj.Toggled
 				end)
 
-				local RemovePlayerChar = AddCheckbox("Remove Player Characters", SaveInstanceArgs.RemovePlayerCharacters)
+				local RemovePlayerChar = AddCheckbox("不保存玩家模型", SaveInstanceArgs.RemovePlayerCharacters)
 				RemovePlayerChar.OnInput:Connect(function()
 					SaveInstanceArgs.RemovePlayerCharacters = RemovePlayerChar.Toggled
 				end)
 
-				local SavePlayerObj = AddCheckbox("Save Player Instance", SaveInstanceArgs.SavePlayers)
+				local SavePlayerObj = AddCheckbox("保存玩家实例", SaveInstanceArgs.SavePlayers)
 				SavePlayerObj.OnInput:Connect(function()
 					SaveInstanceArgs.SavePlayers = SavePlayerObj.Toggled
 				end)
 
-				local IsolateStarterPlr = AddCheckbox("Isolate StarterPlayer", SaveInstanceArgs.IsolateStarterPlayer)
+				local IsolateStarterPlr = AddCheckbox("分隔初始角色（StarterPlayer）", SaveInstanceArgs.IsolateStarterPlayer)
 				IsolateStarterPlr.OnInput:Connect(function()
 					SaveInstanceArgs.IsolateStarterPlayer = IsolateStarterPlr.Toggled
 				end)
 
-				local IgnoreDefaultProps = AddCheckbox("Ignore Default Properties", SaveInstanceArgs.IgnoreDefaultProps)
+				local IgnoreDefaultProps = AddCheckbox("忽略默认属性", SaveInstanceArgs.IgnoreDefaultProps)
 				IgnoreDefaultProps.OnInput:Connect(function()
 					SaveInstanceArgs.IgnoreDefaultProps = IgnoreDefaultProps.Toggled
 				end)
 
-				local ShowStat = AddCheckbox("Show Status", SaveInstanceArgs.ShowStatus)
+				local ShowStat = AddCheckbox("显示状态", SaveInstanceArgs.ShowStatus)
 				ShowStat.OnInput:Connect(function()
 					SaveInstanceArgs.ShowStatus = ShowStat.Toggled
 				end)
