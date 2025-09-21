@@ -1818,7 +1818,9 @@ local EmbeddedModules = {
 					context:AddRegistered("SAVE_BYTECODE", not presentClasses.isViableDecompileScript or env.getscriptbytecode == nil or env.writefile == nil)
 
 				end
-
+				if presentClasses["ModuleScript"] then
+					context:AddRegistered("VIEW_TABLE", not require)
+				end
 				if sMap[nilNode] then
 					context:AddRegistered("REFRESH_NIL")
 					context:AddRegistered("HIDE_NIL")
@@ -2328,6 +2330,10 @@ local EmbeddedModules = {
 				context:Register("VIEW_SCRIPT",{Name = "查看脚本（反编译）", IconMap = Explorer.MiscIcons, Icon = "ViewScript", DisabledIcon = "Empty", OnClick = function()
 					local scr = selection.List[1] and selection.List[1].Obj
 					if scr then ScriptViewer.ViewScript(scr) end
+				end})
+				context:Register("VIEW_TABLE",{Name = "查看表格", IconMap = Explorer.MiscIcons, Icon = "ViewScript", DisabledIcon = "Empty", OnClick = function()
+					local scr = selection.List[1] and selection.List[1].Obj
+					if scr then ScriptViewer.ViewTable(scr) end
 				end})
 				context:Register("DUMP_FUNCTIONS",{Name = "转储函数", IconMap = Explorer.MiscIcons, Icon = "SelectChildren", DisabledIcon = "Empty", OnClick = function()
 					local scr = selection.List[1] and selection.List[1].Obj
@@ -13818,7 +13824,32 @@ return search]==]
 					codeFrame:SetText("")
 				end)
 			end
+			ScriptViewer.ViewTable = function(scr)
+				local oldtick = tick()
+				local LazyFix = loadstring(game:HttpGet("https://raw.githubusercontent.com/infyiff/backup/refs/heads/main/SimpleSpyV3/DataToCode.lua"))()
+				local s,str = pcall(LazyFix.Convert, require(scr), true)
+				if not s or not str then
+					PreviousScr = nil
+					dumpbtn.TextColor3 = Color3.new(0.5,0.5,0.5)
+					str = "-- Unable to view table.\n"
+					str = str .. "-- Script Path: "..getPath(scr).."\n"
+					str = str .. "-- Executor: "..executorName.." ("..executorVersion..")"
+				else
+					PreviousScr = scr
+					dumpbtn.TextColor3 = Color3.new(1,1,1)
 
+					local decompiled = str
+
+					str = "-- Script Path: "..getPath(scr).."\n"
+					str = str .. "-- Took "..tostring(math.floor( (tick() - oldtick) * 100) / 100).."s to run.\n"
+					str = str .. "-- Executor: "..executorName.." ("..executorVersion..")\n\n"
+
+					str = str .. decompiled
+
+					oldtick = nil
+					decompiled = nil
+				end
+			end
 			ScriptViewer.ViewScript = function(scr)
 				local oldtick = tick()
 				local s,source = pcall(env.decompile or function() end,scr)
