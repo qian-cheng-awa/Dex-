@@ -1,4 +1,5 @@
 --[[
+
 	Dex++
 	Version 2.2
 	
@@ -13826,7 +13827,10 @@ return search]==]
 			ScriptViewer.ViewTable = function(scr)
 				local oldtick = tick()
 				local LazyFix = loadstring(game:HttpGet("https://raw.githubusercontent.com/infyiff/backup/refs/heads/main/SimpleSpyV3/DataToCode.lua"))()
-				local s,str = pcall(LazyFix.Convert, require(scr), true)
+				local s,str = pcall(function()
+					return LazyFix.Convert(require(scr), true)
+				end)
+				
 				if not s or not str then
 					PreviousScr = nil
 					dumpbtn.TextColor3 = Color3.new(0.5,0.5,0.5)
