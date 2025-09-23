@@ -7,6 +7,15 @@
 	
 	Dex++ is a revival of Moon's Dex, made to fulfill Moon's Dex prophecy.
 ]]
+if not _G.BixieBypass then
+	_G.BixieBypass = true
+	local old;old = hookfunction(setmetatable, function(tb1,tb2,...)
+		if tb1[1] and typeof(tb1[1]) == "userdata" and tb1[2] and tb1[2] == game.Players.LocalPlayer:GetMouse() and tb2 and tb2["__mode"] and tb2["__mode"] == "v" then
+			return {" "}
+		end
+		return old(tb1,tb2,...)
+	end)
+end
 
 local selection
 local nodes = {}
@@ -12794,7 +12803,7 @@ return search]==]
 								}
 								return chinesetable[string] or string
 							end
-							
+
 							if prop.CategoryName then
 								entry.BackgroundColor3 = Settings.Theme.Main1
 								valueFrame.Visible = false
@@ -13830,7 +13839,7 @@ return search]==]
 				local s,str = pcall(function()
 					return LazyFix.Convert(require(scr), true)
 				end)
-				
+
 				if not s or not str then
 					PreviousScr = nil
 					dumpbtn.TextColor3 = Color3.new(0.5,0.5,0.5)
@@ -13852,7 +13861,7 @@ return search]==]
 					oldtick = nil
 					decompiled = nil
 				end
-				
+
 				codeFrame:SetText(str)
 				window:Show()
 			end
