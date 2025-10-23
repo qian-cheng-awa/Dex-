@@ -1,5 +1,4 @@
 --[[
-
 	Dex++
 	Version 2.2
 	
@@ -1644,13 +1643,17 @@ local EmbeddedModules = {
 				if Main.Elevated then
 					descendantAddedCon = game.DescendantAdded:Connect(addObject)
 					descendantRemovingCon = game.DescendantRemoving:Connect(removeObject)
-					huidescendantAddedCon = gethui().DescendantAdded:Connect(addObject)
-					huidescendantRemovingCon = gethui().DescendantRemoving:Connect(removeObject)
+					if gethui().Parent == game and not game:FindFirstChild(gethui().Name) then
+						huidescendantAddedCon = gethui().DescendantAdded:Connect(addObject)
+						huidescendantRemovingCon = gethui().DescendantRemoving:Connect(removeObject)
+					end
 				else
 					descendantAddedCon = game.DescendantAdded:Connect(function(obj) pcall(addObject,obj) end)
 					descendantRemovingCon = game.DescendantRemoving:Connect(function(obj) pcall(removeObject,obj) end)
-					huidescendantAddedCon = gethui().DescendantAdded:Connect(function(obj) pcall(addObject,obj) end)
-					huidescendantRemovingCon = gethui().DescendantRemoving:Connect(function(obj) pcall(removeObject,obj) end)
+					if gethui().Parent == game and not game:FindFirstChild(gethui().Name) then
+						huidescendantAddedCon = gethui().DescendantAdded:Connect(function(obj) pcall(addObject,obj) end)
+						huidescendantRemovingCon = gethui().DescendantRemoving:Connect(function(obj) pcall(removeObject,obj) end)
+					end
 				end
 
 				if Settings.Explorer.UseNameWidth then
@@ -2590,7 +2593,7 @@ local EmbeddedModules = {
 
 					local parObj = curObj.Parent
 					if parObj == gethui() then
-						path = "gethui()"..indexName..path
+						indexName = "gethui()"..indexName
 					elseif parObj then
 						local fc = ffc(parObj,curName)
 						if useGetCh and fc and fc ~= curObj then
@@ -3447,9 +3450,11 @@ return search]==]
 
 				Explorer.SetupConnections()
 				local insts = getDescendants(game)
-				insts[#insts+1] = gethui()
-				for i,v in pairs(getDescendants(gethui())) do
-					insts[#insts+1] = v
+				if gethui().Parent == game and not game:FindFirstChild(gethui().Name) then
+					insts[#insts+1] = gethui()
+					for i,v in pairs(getDescendants(gethui())) do
+						insts[#insts+1] = v
+					end
 				end
 
 				if Main.Elevated then
