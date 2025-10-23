@@ -1,5 +1,4 @@
 --[[
-
 	Dex++
 	Version 2.2
 	
@@ -2576,9 +2575,8 @@ local EmbeddedModules = {
 						path = "game"..path
 						break
 					elseif curObj == gethui() then
-						path = "gethui()"..path
+						break
 					end
-
 					local className = curObj.ClassName
 					local curName = ts(curObj)
 					local indexName
@@ -2590,7 +2588,9 @@ local EmbeddedModules = {
 					end
 
 					local parObj = curObj.Parent
-					if parObj then
+					if parObj == gethui() then
+						path = "gethui()"..indexName..path
+					elseif parObj then
 						local fc = ffc(parObj,curName)
 						if useGetCh and fc and fc ~= curObj then
 							local parCh = getCh(parObj)
