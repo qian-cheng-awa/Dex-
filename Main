@@ -1,4 +1,5 @@
 --[[
+
 	Dex++
 	Version 2.2
 	
@@ -1620,7 +1621,7 @@ local EmbeddedModules = {
 			Explorer.NodeDepth = function(node)
 				local depth = 0
 
-				if node == nilNode or node.Obj == gethui() then
+				if node == nilNode or (node.Obj == gethui() and gethui().Parent == game) then
 					return 1
 				end
 
