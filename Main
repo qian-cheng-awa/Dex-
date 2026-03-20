@@ -14672,9 +14672,9 @@ Main = (function()
 			end)
 			-- lmfao async makes it work to load big file
 			rawAPI = rawAPI or (function()
-				local sus,err = pcall(game.HttpGet,game,"http://setup.roblox.com/"..Main.RobloxVersion.."-API-Dump.json")
+				local sus,err = pcall(game.HttpGet,game,"https://raw.githubusercontent.com/MaximumADHD/Roblox-Client-Tracker/refs/heads/roblox/API-Dump.json")
 				if not sus then
-					return game:HttpGet("https://raw.githubusercontent.com/MaximumADHD/Roblox-Client-Tracker/refs/heads/roblox/API-Dump.json")
+					return game:HttpGet("http://setup.roblox.com/"..Main.RobloxVersion.."-API-Dump.json")
 				else
 					return err
 				end
