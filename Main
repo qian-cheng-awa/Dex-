@@ -12142,7 +12142,7 @@ return search]==]
 						local node  = Lis[1]
 						local obj = node.Obj
 						local val = obj:GetAttribute(Name)
-						env.setclipboard(getPath(obj)..`:GetAttribute({Name}) --[[ Value : {typeof(val)} = {TableToLuaCode(val,true)} ]]`)
+						env.setclipboard(getPath(obj)..`:GetAttribute({TableToLuaCode(Name,true)}) --[[ Value : {typeof(val)} = {TableToLuaCode(val,true)} ]]`)
 					end
 				end,})
 				
