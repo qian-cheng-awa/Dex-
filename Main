@@ -21,7 +21,7 @@ local nodes = {}
 
 local oldgame = game
 local game = workspace.Parent
-
+local LazyFix
 cloneref = cloneref or function(ref)
 	if not getreg then return ref end
 
@@ -53,6 +53,11 @@ cloneref = cloneref or function(ref)
 		end
 	end
 	return f.invalidate
+end
+
+TableToLuaCode = function(Table,b)
+	LazyFix = LazyFix or loadstring(game:HttpGet("https://raw.githubusercontent.com/infyiff/backup/refs/heads/main/SimpleSpyV3/DataToCode.lua"))()
+	return LazyFix.Convert(Table, b)
 end
 
 local EmbeddedModules = {
@@ -1825,6 +1830,7 @@ local EmbeddedModules = {
 
 				if presentClasses["LuaSourceContainer"] then
 					context:AddRegistered("VIEW_SCRIPT", not presentClasses.isViableDecompileScript or env.decompile == nil)
+					context:AddRegistered("VIEW_SENV", getsenv == nil)
 					context:AddRegistered("DUMP_FUNCTIONS", not presentClasses.isViableDecompileScript or env.getupvalues == nil or env.getconstants == nil)
 					context:AddRegistered("SAVE_SCRIPT", not presentClasses.isViableDecompileScript or env.decompile == nil or env.writefile == nil)
 					context:AddRegistered("SAVE_BYTECODE", not presentClasses.isViableDecompileScript or env.getscriptbytecode == nil or env.writefile == nil)
@@ -2058,7 +2064,7 @@ local EmbeddedModules = {
 							if Obj.CanCollide then
 								plr.Character:MoveTo(Obj.Position)
 							else
-								plrRP.CFrame = CFrame.new(Obj.Position + Settings.Explorer.TeleportToOffset)
+								plrRP.CFrame = CFrame.new(Obj.Position + Settings.Explorer.TeleportToOffset or Vector3.new(0,0,0))
 							end
 							break
 						elseif Obj:IsA("Model") then
@@ -2066,21 +2072,11 @@ local EmbeddedModules = {
 								if Obj.PrimaryPart.CanCollide then
 									plr.Character:MoveTo(Obj.PrimaryPart.Position)
 								else
-									plrRP.CFrame = CFrame.new(Obj.PrimaryPart.Position + Settings.Explorer.TeleportToOffset)
+									plrRP.CFrame = CFrame.new(Obj.PrimaryPart.Position + Settings.Explorer.TeleportToOffset or Vector3.new(0,0,0))
 								end
 								break
 							else
-								local part = Obj:FindFirstChildWhichIsA("BasePart", true)
-								if part and nodes[part] then
-									if part.CanCollide then
-										plr.Character:MoveTo(part.Position)
-									else
-										plrRP.CFrame = CFrame.new(part.Position + Settings.Explorer.TeleportToOffset)
-									end
-									break
-								elseif Obj.WorldPivot then
-									plrRP.CFrame = Obj.WorldPivot
-								end
+								plrRP.CFrame = Obj:GetPivot()
 							end
 						end
 					end
@@ -2343,6 +2339,12 @@ local EmbeddedModules = {
 					local scr = selection.List[1] and selection.List[1].Obj
 					if scr then ScriptViewer.ViewScript(scr) end
 				end})
+				
+				context:Register("VIEW_SENV",{Name = "查看脚本环境", IconMap = Explorer.MiscIcons, Icon = "ViewScript", DisabledIcon = "Empty", OnClick = function()
+					local scr = selection.List[1] and selection.List[1].Obj
+					if scr then ScriptViewer.ViewSenv(scr) end
+				end})
+				
 				context:Register("VIEW_TABLE",{Name = "查看表格", IconMap = Explorer.MiscIcons, Icon = "ViewScript", DisabledIcon = "Empty", OnClick = function()
 					local scr = selection.List[1] and selection.List[1].Obj
 					if scr then ScriptViewer.ViewTable(scr) end
@@ -12108,7 +12110,15 @@ return search]==]
 					Properties.Refresh()
 				end
 			end
-
+			
+			local function getPath(obj)
+				if obj.Parent == nil then
+					return "Nil parented"
+				else
+					return Explorer.GetInstancePath(obj)
+				end
+			end
+			
 			Properties.DisplayAttributeContext = function(prop)
 				local context = Properties.AttributeContext
 				if not context then
@@ -12125,7 +12135,17 @@ return search]==]
 					Properties.SetProp(prop,nil,true)
 					Properties.ShowExplorerProps()
 				end})
-
+				context:Add({Name = "Copy",OnClick = function()
+					local Name = prop.AttributeName
+					local Lis =  Explorer.Selection.List
+					if #Lis > 0 and #Lis < 2 then
+						local node  = Lis[1]
+						local obj = node.Obj
+						local val = obj:GetAttribute(Name)
+						env.setclipboard(getPath(obj)..`:GetAttribute({Name}) --[[ Value : {typeof(val)} = {TableToLuaCode(val,true)} ]]`)
+					end
+				end,})
+				
 				context:Show()
 			end
 
@@ -13841,9 +13861,8 @@ return search]==]
 			end
 			ScriptViewer.ViewTable = function(scr)
 				local oldtick = tick()
-				local LazyFix = loadstring(game:HttpGet("https://raw.githubusercontent.com/infyiff/backup/refs/heads/main/SimpleSpyV3/DataToCode.lua"))()
 				local s,str = pcall(function()
-					return LazyFix.Convert(require(scr), true)
+					return TableToLuaCode(require(scr),true)
 				end)
 
 				if not s or not str then
@@ -13871,6 +13890,49 @@ return search]==]
 				codeFrame:SetText(str)
 				window:Show()
 			end
+			
+			ScriptViewer.ViewSenv = function(scr)
+				local oldtick = tick()
+				local s,source = pcall(getsenv or function() end,scr)
+
+				if not s or not source then
+					local errorm = source
+					PreviousScr = nil
+					dumpbtn.TextColor3 = Color3.new(0.5,0.5,0.5)
+					source = "-- Unable to view senv.\n"
+					source = source .. "-- Script Path: "..getPath(scr).."\n"
+					if (scr.ClassName == "Script" and (scr.RunContext == Enum.RunContext.Legacy or scr.RunContext == Enum.RunContext.Server)) or not (scr:IsA("LocalScript") or scr:IsA("ModuleScript")) then
+						source = source .. "-- Reason: The script is not running on client. (attempt to getsenv ServerScript or 'Script' with RunContext Server)\n"
+					elseif not getsenv then
+						source = source .. "-- Reason: Your executor does not support getsenv. (missing 'decompile' function)\n"
+					else
+						source = source .. "-- Reason: Unknown\n"
+					end
+					source = source .. "-- Executor: "..executorName.." ("..executorVersion..")\n"
+					source = source .. "-- Error Message: "..tostring(errorm)
+				else
+					
+					source = TableToLuaCode(source,true)
+					
+					PreviousScr = scr
+					dumpbtn.TextColor3 = Color3.new(1,1,1)
+
+					local decompiled = source
+
+					source = "-- Script Path: "..getPath(scr).."\n"
+					source = source .. "-- Took "..tostring(math.floor( (tick() - oldtick) * 100) / 100).."s to getsenv.\n"
+					source = source .. "-- Executor: "..executorName.." ("..executorVersion..")\n\n"
+
+					source = source .. decompiled
+
+					oldtick = nil
+					decompiled = nil
+				end
+
+				codeFrame:SetText(source)
+				window:Show()
+			end
+			
 			ScriptViewer.ViewScript = function(scr)
 				local oldtick = tick()
 				local s,source = pcall(env.decompile or function() end,scr)
@@ -13967,7 +14029,8 @@ end
 local isFsSupported = readfile and writefile and isfile and isfolder and listfiles and delfile and delfolder
 
 -- Main vars
-local Main, Explorer, Properties, ScriptViewer, Console, SaveInstance, ModelViewer--[[, SecretServicePanel]], DefaultSettings, Notebook, Serializer, Lib local ggv = getgenv or nil
+local Main, Explorer, Properties, ScriptViewer, Console, SaveInstance, ModelViewer--[[, SecretServicePanel]], DefaultSettings, Notebook, Serializer, Lib
+local ggv = getgenv or nil
 local API, RMD
 
 -- Default Settings
@@ -14096,7 +14159,7 @@ end
 Main = (function()
 	local Main = {}
 
-	Main.ModuleList = {"Explorer","Properties","ScriptViewer","Console","SaveInstance","ModelViewer"}
+	Main.ModuleList = {"Explorer","Properties","ScriptViewer","Console","SaveInstance","ModelViewer",--[["SecretServicePanel"]]}
 	Main.Elevated = false
 	Main.AllowDraggableOnMobile = true
 	Main.MissingEnv = {}
@@ -14238,7 +14301,7 @@ Main = (function()
 		end
 	end
 
-	Main.LoadModule = function(name)
+	Main.LoadModule = function(name,custom)
 		if Main.Elevated then -- If you don't have filesystem api then ur outta luck tbh
 			local control
 
@@ -14334,7 +14397,6 @@ Main = (function()
 			SaveInstance = SaveInstance,
 			ModelViewer = ModelViewer,
 			Notebook = Notebook,
-
 			--SecretServicePanel = SecretServicePanel,
 		}
 
