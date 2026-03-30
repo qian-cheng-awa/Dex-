@@ -15,7 +15,9 @@ if not _G.BixieBypass then
 		return old(tb1,tb2,...)
 	end)
 end
-
+local isnetworkowner = isnetworkowner or function(obj)
+	return not obj:IsGrounded() and obj.AssemblyRootPart.ReceiveAge == 0
+end
 local selection
 local nodes = {}
 
@@ -2339,12 +2341,12 @@ local EmbeddedModules = {
 					local scr = selection.List[1] and selection.List[1].Obj
 					if scr then ScriptViewer.ViewScript(scr) end
 				end})
-				
+
 				context:Register("VIEW_SENV",{Name = "查看脚本环境", IconMap = Explorer.MiscIcons, Icon = "ViewScript", DisabledIcon = "Empty", OnClick = function()
 					local scr = selection.List[1] and selection.List[1].Obj
 					if scr then ScriptViewer.ViewSenv(scr) end
 				end})
-				
+
 				context:Register("VIEW_TABLE",{Name = "查看表格", IconMap = Explorer.MiscIcons, Icon = "ViewScript", DisabledIcon = "Empty", OnClick = function()
 					local scr = selection.List[1] and selection.List[1].Obj
 					if scr then ScriptViewer.ViewTable(scr) end
@@ -11253,7 +11255,200 @@ return search]==]
 					["VIPServerOwnerId"] = true
 				}
 			}
+			
+			Properties.CustomProps = {
+				["StarterGui"] = (function()
+					local tb = {}
+					
+					for i,v in pairs(Enum.CoreGuiType:GetEnumItems()) do
+						local function Get(Obj)
+							return Obj:GetCoreGuiEnabled(v) 
+						end
+						
+						local function Set(Obj,Val)
+							Obj:SetCoreGuiEnabled(v,Val)
+						end
+						
+						table.insert(tb, {
+							Name = v.Name,
+							Get = Get,
+							Set = Set,
+						})
+					end
+					
+					return tb
+				end)(),
+				["Humanoid"] = (function()
+					local tb = {
+						{
+							Name = "MoveVelocity",
+							Get = function(Obj)
+								return Obj:GetMoveVelocity()
+							end,
+						}
+					}
+					
+					for i,v in pairs(Enum.HumanoidStateType:GetEnumItems()) do
+						local function Get(Obj)
+							return Obj:GetStateEnabled(v) 
+						end
 
+						local function Set(Obj,Val)
+							Obj:SetStateEnabled(v,Val)
+						end
+
+						table.insert(tb, {
+							Name = v.Name,
+							Get = Get,
+							Set = Set,
+						})
+					end
+					
+					return tb
+				end)(),
+				["Player"] = {
+					{
+						Name = "NetworkPing",
+						Get = function(Obj)
+							return Obj:GetNetworkPing()
+						end,
+					},
+				},
+				["Workspace"] = {
+					{
+						Name = "ServerTimeNow",
+						Get = function(Obj)
+							return Obj:GetServerTimeNow()
+						end,
+					},
+					{
+						Name = "RealPhysicsFPS",
+						Get = function(Obj)
+							return Obj:GetRealPhysicsFPS()
+						end,
+					}
+				},
+				["Lighting"] = {
+					{
+						Name = "MoonPhase",
+						Get = function(Obj)
+							return Obj:GetMoonPhase()
+						end,
+					},
+					{
+						Name = "MoonDirection",
+						Get = function(Obj)
+							return Obj:GetMoonDirection()
+						end,
+					},
+					{
+						Name = "GetSunDirection",
+						Get = function(Obj)
+							return Obj:GetSunDirection()
+						end,
+					},
+					{
+						Name = "MinutesAfterMidnight",
+						Get = function(Obj)
+							return Obj:GetMinutesAfterMidnight()
+						end,
+						Set = function(Obj,Val)
+							Obj:SetMinutesAfterMidnight(Val)
+						end,
+					}
+				},
+				["TextChatService"] = {
+					{
+						Name = "CanLocalPlayerChat",
+						Get = function(Obj)
+							return Obj:CanUserChatAsync(game:GetService("Players").LocalPlayer.UserId)
+						end,
+						IgroneValueChange = true
+					}
+				},
+				["BasePart"] = {
+					{
+						Name = "IsNetworkOwner",
+						Get = function(Obj)
+							return isnetworkowner(Obj)
+						end,
+					},
+					{
+						Name = "IsGrounded",
+						Get = function(Obj)
+							return Obj:IsGrounded()
+						end,
+					},
+					{
+						Name = "ApplyImpulse",
+						Get = function(Obj)
+							return Vector3.new(0,0,0)
+						end,
+						Set = function(Obj,Val)
+							Obj:ApplyImpulse(Val)
+						end,
+						IgroneValueChange = true,
+					},
+					{
+						Name = "ApplyAngularImpulse",
+						Get = function(Obj)
+							return Vector3.new(0,0,0)
+						end,
+						Set = function(Obj,Val)
+							Obj:ApplyAngularImpulse(Val)
+						end,
+						IgroneValueChange = true,
+					}
+				},
+				["Model"] = {
+					{
+						Name = "Pivot",
+						Get = function(Obj)
+							return Obj:GetPivot()
+						end,
+						Set = function(Obj,Val)
+							return Obj:PivotTo(Val)
+						end,
+					},
+					{
+						Name = "ExtentsSize",
+						Get = function(Obj)
+							return Obj:GetExtentsSize()
+						end,
+					},
+					{
+						Name = "Scale",
+						Get = function(Obj)
+							return Obj:GetScale()
+						end,
+						Set = function(Obj,Val)
+							Obj:ScaleTo(Val)
+						end,
+					},
+					{
+						Name = "TranslateBy",
+						Get = function(Obj)
+							return Vector3.new(0,0,0)
+						end,
+						Set = function(Obj,Val)
+							Obj:TranslateBy(Val)
+						end,
+						IgroneValueChange = true,
+					}
+				},
+				["Camera"] = {
+					{
+						Name = "Roll",
+						Get = function(Obj)
+							return Obj:GetRoll()
+						end,
+						Set = function(Obj,Val)
+							Obj:SetRoll(Val)
+						end,
+					}
+				}
+			}
+			
 			Properties.ExpandableTypes = {
 				["Vector2"] = true,
 				["Vector3"] = true,
@@ -11497,6 +11692,12 @@ return search]==]
 											firstObj = obj
 											firstSet = true
 										end
+									elseif prop.IsCustom then
+										firstVal = prop.Get(obj)
+										if firstVal ~= nil then
+											firstObj = obj
+											firstSet = true
+										end
 									else
 										firstVal = obj[propName]
 										firstObj = obj
@@ -11507,6 +11708,9 @@ return search]==]
 									local propVal,skip
 									if isAttribute then
 										propVal = getAttribute(obj,attributeName)
+										if propVal == nil then skip = true end
+									elseif prop.IsCustom then
+										propVal = prop.Get(obj)
 										if propVal == nil then skip = true end
 									else
 										propVal = obj[propName]
@@ -11642,6 +11846,35 @@ return search]==]
 								foundAttrs[name][2].Tags.ReadOnly = true
 								foundAttrs[name][2].ValueType = {Name = "string"}
 							end
+						end
+					end
+					
+					local CustomProp
+					
+					for c,tbl in pairs(Properties.CustomProps) do
+						if isa(obj,c) then
+							CustomProp = {CustomProp and unpack(CustomProp),unpack(tbl)}
+						end
+					end
+					
+					if CustomProp then
+						for _,tab in pairs(CustomProp) do
+							local name = tab.Name
+							local val
+							if tab.Get then
+								val = tab.Get(obj)
+							end
+							
+							local typ = typeof(val)
+							
+							local category = (typ == "Instance" and "Class") or (typ == "EnumItem" and "Enum") or "Other"
+							local valType = {Name = typeNameConvert[typ] or typ, Category = category}
+							local FinalCustomProp = {IsCustom = true, Name = "CUSTOM_"..name, CustomName = name, DisplayName = name, Class = "Instance", ValueType = valType, Category = "Custom", Tags = {}, Get = tab.Get, Set = tab.Set}
+							if not FinalCustomProp.Set then
+								FinalCustomProp.Tags.ReadOnly = true
+							end
+							props[propCount] = FinalCustomProp
+							propCount = propCount + 1
 						end
 					end
 				end
@@ -11983,7 +12216,15 @@ return search]==]
 
 					Properties.DisplayAttributeContext(prop)
 				end)
-
+				
+				local function getPath(obj)
+					if obj.Parent == nil then
+						return "Nil parented"
+					else
+						return Explorer.GetInstancePath(obj)
+					end
+				end
+				
 				valueFrame.SoundPreview.ControlButton.MouseButton1Click:Connect(function()
 					if Properties.PreviewSound and Properties.PreviewSound.Playing then
 						Properties.SetSoundPreview(false)
@@ -12110,7 +12351,7 @@ return search]==]
 					Properties.Refresh()
 				end
 			end
-			
+
 			local function getPath(obj)
 				if obj.Parent == nil then
 					return "Nil parented"
@@ -12118,7 +12359,7 @@ return search]==]
 					return Explorer.GetInstancePath(obj)
 				end
 			end
-			
+
 			Properties.DisplayAttributeContext = function(prop)
 				local context = Properties.AttributeContext
 				if not context then
@@ -12145,7 +12386,7 @@ return search]==]
 						env.setclipboard(getPath(obj)..`:GetAttribute({TableToLuaCode(Name,true)}) --[[ Value : {typeof(val)} = {TableToLuaCode(val,true)} ]]`)
 					end
 				end,})
-				
+
 				context:Show()
 			end
 
@@ -12436,6 +12677,8 @@ return search]==]
 					elseif prop.ValueType.Name ~= currentType then
 						return nil
 					end
+				elseif prop.IsCustom then
+					propVal = prop.Get(obj)
 				else
 					propVal = obj[prop.Name]
 				end
@@ -12641,200 +12884,12 @@ return search]==]
 							propNameLabel.Size = UDim2.new(1,-2 - (scaleType == 0 and 0 or 6),1,0)
 
 							local gName = (prop.CategoryName and "CAT_"..prop.CategoryName) or prop.Class.."."..prop.Name..(prop.SubName or "")
-							local function ToChinese(string)
-								local chinesetable = {
-									Transparency = "透明度",
-									Position = "位置",
-									Size = "尺寸",
-									Rotation = "旋转",
-									Anchored = "锚固",
-									CanCollide = "碰撞",
-									Color = "颜色",
-									Material = "材质",
-									Reflectance = "反射率",
-									Name = "名称",
-									Parent = "父级",
-									Visible = "可见性",
-									Locked = "锁定",
-									Enabled = "启用",
-									Value = "值",
-									Text = "文本",
-									Font = "字体",
-									TextSize = "文本大小",
-									TextColor3 = "文本颜色",
-									BackgroundColor3 = "背景颜色",
-									BorderColor3 = "边框颜色",
-									BorderSizePixel = "边框大小",
-									BackgroundTransparency = "背景透明度",
-									Image = "图像",
-									ImageColor3 = "图像颜色",
-									ImageTransparency = "图像透明度",
-									ScaleType = "缩放类型",
-									SliceScale = "切片缩放",
-									Source = "源",
-									Volume = "音量",
-									PlaybackSpeed = "播放速度",
-									Looped = "循环播放",
-									Playing = "正在播放",
-									Pitch = "音高",
-									MaxDistance = "最大距离",
-									MinDistance = "最小距离",
-									Brightness = "亮度",
-									Shadows = "阴影",
-									Range = "范围",
-									Angle = "角度",
-									Face = "面",
-									Shape = "形状",
-									Friction = "摩擦力",
-									Elasticity = "弹性",
-									WalkSpeed = "行走速度",
-									JumpPower = "跳跃力量",
-									Health = "生命值",
-									MaxHealth = "最大生命值",
-									TeamColor = "队伍颜色",
-									DataCost = "数据成本",
-									PhysicsSenderRate = "物理发送速率",
-									NetworkOwner = "网络所有者",
-									Velocity = "速度",
-									CFrame = "坐标系",
-									Orientation = "方向",
-									PivotOffset = "枢轴偏移",
-									CastShadow = "阴影",
-									CollisionGroup = "碰撞组",
-									Mass = "质量",
-									CenterOfMass = "质心",
-									AssemblyLinearVelocity = "组合线性速度",
-									AssemblyAngularVelocity = "组合角速度",
-									MeshType = "网格类型",
-									Offset = "偏移",
-									TextureID = "纹理ID",
-									StudsPerText = "每文本格数",
-									ZIndex = "Z索引",
-									AutoButtonColor = "自动按钮颜色",
-									Modal = "模态",
-									Selected = "已选中",
-									Active = "活跃",
-									Adornee = "装饰对象",
-									AlwaysOnTop = "始终置顶",
-									ExtentsOffset = "范围偏移",
-									StudsOffset = "格数偏移",
-									StudsOffsetWorldSpace = "世界空间格数偏移",
-									LightColor = "灯光颜色",
-									LightDirection = "灯光方向",
-									SpotAngle = "聚光角度",
-									TimeScale = "时间缩放",
-									Throttle = "节流阀",
-									CameraType = "摄像机类型",
-									FieldOfView = "视野",
-									Focus = "焦点",
-									MaxActivationDistance = "最大激活距离",
-									Origin = "原点",
-									Axis = "轴",
-									SecondaryAxis = "副轴",
-									PrimaryAxisOnly = "仅主轴",
-									RelativeTo = "相对于",
-									WorldRelative = "世界相对",
-									Heat = "热量",
-									MaxTorque = "最大扭矩",
-									TargetPosition = "目标位置",
-									TargetOrientation = "目标方向",
-									CurrentPosition = "当前位置",
-									CurrentOrientation = "当前方向",
-									Servo = "伺服",
-									LimitsEnabled = "限制已启用",
-									UpperLimit = "上限",
-									LowerLimit = "下限",
-									Restitution = "恢复系数",
-									ContactDistance = "接触距离",
-									MaxForce = "最大力",
-									MaxVelocity = "最大速度",
-									DesiredAngle = "期望角度",
-									CurrentAngle = "当前角度",
-									MaxAngle = "最大角度",
-									MinAngle = "最小角度",
-									Radius = "半径",
-									Height = "高度",
-									NumSides = "边数",
-									HoleSize = "孔洞尺寸",
-									Bevel = "倒角",
-									Bevel_Roundness = "倒角圆度",
-									MeshId = "网格ID",
-									Texture = "纹理",
-									FaceId = "面ID",
-									Weld = "焊接",
-									C0 = "初始坐标系偏移",
-									C1 = "目标坐标系偏移",
-									Part0 = "部件0",
-									Part1 = "部件1",
-									Surface = "表面",
-									SurfaceInput = "表面输入",
-									InOut = "输入输出",
-									RightParamA = "右参数A",
-									RightParamB = "右参数B",
-									LeftParamA = "左参数A",
-									LeftParamB = "左参数B",
-									FrontParamA = "前参数A",
-									FrontParamB = "前参数B",
-									BackParamA = "后参数A",
-									BackParamB = "后参数B",
-									TopParamA = "顶参数A",
-									TopParamB = "顶参数B",
-									BottomParamA = "底参数A",
-									BottomParamB = "底参数B",
-									RightSurface = "右表面",
-									LeftSurface = "左表面",
-									FrontSurface = "前表面",
-									BackSurface = "后表面",
-									TopSurface = "顶表面",
-									BottomSurface = "底表面",
-									RightSurfaceInput = "右表面输入",
-									LeftSurfaceInput = "左表面输入",
-									FrontSurfaceInput = "前表面输入",
-									BackSurfaceInput = "后表面输入",
-									TopSurfaceInput = "顶表面输入",
-									BottomSurfaceInput = "底表面输入",
-									FormFactor = "形态因素",
-									ElasticityWeight = "弹性权重",
-									FrictionWeight = "摩擦权重",
-									IsPaused = "已暂停",
-									IsPlaying = "正在播放",
-									Length = "长度",
-									TimePosition = "时间位置",
-									CustomPhysicalProperties = "自定义物理属性",
-									Density = "密度",
-									AreHingesDetected = "检测到铰链",
-									AreAnchorsShown = "显示锚点",
-									IsRotationShowing = "显示旋转",
-									IsNetworkOwner = "是网络所有者",
-									IsSleeping = "正在休眠",
-									NetworkIsSleeping = "网络正在休眠",
-									ReceiveAge = "接收年龄",
-									RenderFidelity = "渲染保真度",
-									ResizeIncrement = "调整增量",
-									ResizableFaces = "可调整面",
-									RightLeft = "左右",
-									RootPriority = "根优先级",
-									RotVelocity = "旋转速度",
-									Throttling = "节流",
-									TopBottom = "顶底",
-									FrontBack = "前后",
-									Archivable = "可存档",
-									WorldPivot = "世界枢轴",
-									AssemblyCenterOfMass = "组合质心",
-									AssemblyMass = "组合质量",
-									AssemblyPosition = "组合位置",
-									AssemblyRotation = "组合旋转",
-									AssemblySize = "组合尺寸",
-									AssemblyVelocity = "组合速度",
-								}
-								return chinesetable[string] or string
-							end
 
 							if prop.CategoryName then
 								entry.BackgroundColor3 = Settings.Theme.Main1
 								valueFrame.Visible = false
 
-								propNameBox.Text = ToChinese(prop.CategoryName)
+								propNameBox.Text = prop.CategoryName
 								propNameBox.Font = Enum.Font.SourceSansBold
 								expand.Visible = true
 								propNameBox.TextColor3 = Settings.Theme.Text
@@ -12870,7 +12925,7 @@ return search]==]
 								end
 
 								local nameArr = stringSplit(gName,".")
-								propNameBox.Text = ToChinese(prop.DisplayName or nameArr[#nameArr])
+								propNameBox.Text = prop.DisplayName or nameArr[#nameArr]
 								propNameBox.Font = Enum.Font.SourceSans
 								entry.BackgroundColor3 = Settings.Theme.Main2
 								valueFrame.Visible = true
@@ -12885,6 +12940,16 @@ return search]==]
 										propCons[#propCons+1] = getAttributeChangedSignal(propObj,prop.AttributeName):Connect(function()
 											Properties.DisplayProp(prop,i)
 										end)
+									elseif prop.IsCustom then
+										if prop.Changed then
+											propCons[#propCons+1] = prop.Changed:Connect(function()
+												Properties.DisplayProp(prop,i)
+											end)
+										elseif not prop.IgroneValueChange then
+											propCons[#propCons+1] = oldgame:GetService("RunService").Stepped:Connect(function()
+												Properties.DisplayProp(prop,i)
+											end)
+										end
 									else
 										propCons[#propCons+1] = getPropChangedSignal(propObj,propName):Connect(function()
 											Properties.DisplayProp(prop,i)
@@ -12982,6 +13047,8 @@ return search]==]
 							local root
 							if prop.IsAttribute then
 								root = getAttribute(obj,attributeName)
+							elseif prop.IsCustom then
+								root = prop.Get(obj)
 							else
 								root = obj[propName]
 							end
@@ -13067,6 +13134,8 @@ return search]==]
 
 							if prop.IsAttribute then
 								setAttribute(obj,attributeName,setVal)
+							elseif prop.IsCustom then
+								prop.Set(obj,setVal)
 							else
 								obj[propName] = setVal
 							end
@@ -13188,7 +13257,7 @@ return search]==]
 					{24,"TextButton",{BackgroundColor3=Color3.new(1,1,1),BackgroundTransparency=1,BorderSizePixel=0,Font=3,Name="EditAttributeButton",Parent={1},Position=UDim2.new(1,-20,0,0),Size=UDim2.new(0,20,0,22),Text="",TextColor3=Color3.new(1,1,1),TextSize=14,}},
 					{25,"ImageLabel",{BackgroundColor3=Color3.new(1,1,1),BackgroundTransparency=1,Image="rbxassetid://5034718180",ImageTransparency=0.20000000298023,Name="Icon",Parent={24},Position=UDim2.new(0,2,0,3),Size=UDim2.new(0,16,0,16),}},
 					{26,"TextButton",{AutoButtonColor=false,BackgroundColor3=Color3.new(0.2352941185236,0.2352941185236,0.2352941185236),BorderSizePixel=0,Font=3,Name="RowButton",Parent={1},Size=UDim2.new(1,0,1,0),Text="Add Attribute",TextColor3=Color3.new(1,1,1),TextSize=14,TextTransparency=0.10000000149012,Visible=false,}},
-					--{27,"UIStroke",{ApplyStrokeMode=Enum.ApplyStrokeMode.Border,Color=Color3.fromRGB(33,33,33),Thickness=1,Parent={1}}}
+					{27,"UIStroke",{ApplyStrokeMode=Enum.ApplyStrokeMode.Border,Color=Color3.fromRGB(33,33,33),Thickness=1,Parent={1}}},
 				})
 
 				local fullNameFrame = Lib.Frame.new()
@@ -13890,7 +13959,7 @@ return search]==]
 				codeFrame:SetText(str)
 				window:Show()
 			end
-			
+
 			ScriptViewer.ViewSenv = function(scr)
 				local oldtick = tick()
 				local s,source = pcall(getsenv or function() end,scr)
@@ -13911,9 +13980,9 @@ return search]==]
 					source = source .. "-- Executor: "..executorName.." ("..executorVersion..")\n"
 					source = source .. "-- Error Message: "..tostring(errorm)
 				else
-					
+
 					source = TableToLuaCode(source,true)
-					
+
 					PreviousScr = scr
 					dumpbtn.TextColor3 = Color3.new(1,1,1)
 
@@ -13932,7 +14001,7 @@ return search]==]
 				codeFrame:SetText(source)
 				window:Show()
 			end
-			
+
 			ScriptViewer.ViewScript = function(scr)
 				local oldtick = tick()
 				local s,source = pcall(env.decompile or function() end,scr)
