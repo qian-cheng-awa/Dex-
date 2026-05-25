@@ -4,8 +4,13 @@
 	
 	Developed by Chillz
 	
+	由辟邪二改
+	
 	Dex++ is a revival of Moon's Dex, made to fulfill Moon's Dex prophecy.
 ]]
+
+
+
 if not _G.BixieBypass then
 	_G.BixieBypass = true
 	local old;old = hookfunction(setmetatable, function(tb1,tb2,...)
@@ -15,15 +20,20 @@ if not _G.BixieBypass then
 		return old(tb1,tb2,...)
 	end)
 end
+
 local isnetworkowner = isnetworkowner or function(obj)
 	return not obj:IsGrounded() and obj.AssemblyRootPart.ReceiveAge == 0
 end
+
 local selection
 local nodes = {}
 
 local oldgame = game
 local game = workspace.Parent
+local HttpService = game:GetService("HttpService")
+
 local LazyFix
+
 cloneref = cloneref or function(ref)
 	if not getreg then return ref end
 
@@ -903,12 +913,15 @@ local EmbeddedModules = {
 			local getTextSize = service.TextService.GetTextSize
 			local updateDebounce,refreshDebounce = false,false
 			local nilNode = {Obj = Instance.new("Folder")}
+			local FunctionsNode = {Obj = Instance.new("Folder"),Custom = true}
+			local HiddenGuiNode = {Obj = Instance.new("Folder"),Custom = true}
 			local idCounter = 0
 			local scrollV,scrollH,clipboard
 			local renameBox,renamingNode,searchFunc
 			local sortingEnabled,autoUpdateSearch
 			local table,math = table,math
 			local nilMap,nilCons = {},{}
+			local huimap,huicons = {},{}
 			local connectSignal = game.DescendantAdded.Connect
 			local addObject,removeObject,moveObject = nil,nil,nil
 
@@ -916,7 +929,9 @@ local EmbeddedModules = {
 			local remote_blocklist = {} -- list of remotes beng blocked, k = the remote instance, v = their old function :3
 			nodes = nodes or {}
 
-			addObject = function(root)
+
+
+			addObject = function(root,custom)
 				if nodes[root] then return end
 
 				local isNil = false
@@ -925,7 +940,9 @@ local EmbeddedModules = {
 
 				-- Nil Handling
 				if not par then
-					if nilMap[root] then
+					if rootParObj == gethui() then
+						par = HiddenGuiNode
+					elseif nilMap[root] then
 						nilCons[root] = nilCons[root] or {
 							connectSignal(root.ChildAdded,addObject),
 							connectSignal(root.AncestryChanged,moveObject),
@@ -944,7 +961,7 @@ local EmbeddedModules = {
 					isNil = true
 				end
 
-				local newNode = {Obj = root, Parent = par}
+				local newNode = {Obj = root, Parent = par,Custom = custom}
 				nodes[root] = newNode
 
 				-- Automatic sorting if expanded
@@ -1300,6 +1317,22 @@ local EmbeddedModules = {
 					end
 				end
 
+				if not (isSearching and not searchResults[HiddenGuiNode]) then
+					tree[count] = HiddenGuiNode
+					count = count + 1
+					if expanded[HiddenGuiNode] then
+						recur(HiddenGuiNode, 2)
+					end
+				end
+
+				if not (isSearching and not searchResults[FunctionsNode]) then
+					tree[count] = FunctionsNode
+					count = count + 1
+					if expanded[FunctionsNode] then
+						recur(FunctionsNode, 2)
+					end
+				end
+
 				Explorer.MaxNameWidth = maxNameWidth
 				Explorer.MaxDepth = maxDepth
 				Explorer.ViewWidth = useNameWidth and Explorer.EntryIndent*maxDepth + maxNameWidth + 26 or Explorer.EntryIndent*maxDepth + 226
@@ -1594,7 +1627,7 @@ local EmbeddedModules = {
 				Lib.FastWait(not instant and 0.1)
 				if not updateDebounce then return end
 				updateDebounce = false
-				if not Explorer.Window:IsVisible() then return end
+				if Explorer.Window and not Explorer.Window:IsVisible() then return end
 				Explorer.Update()
 				Explorer.Refresh()
 			end
@@ -1609,7 +1642,8 @@ local EmbeddedModules = {
 				refreshDebounce = true
 				Lib.FastWait(0.1)
 				refreshDebounce = false
-				if updateDebounce or not Explorer.Window:IsVisible() then return end
+				if updateDebounce then return end
+				if Explorer.Window and not Explorer.Window:IsVisible() then return end
 				Explorer.Refresh()
 			end
 
@@ -1627,13 +1661,13 @@ local EmbeddedModules = {
 			Explorer.NodeDepth = function(node)
 				local depth = 0
 
-				if node == nilNode or (node.Obj == gethui() and gethui().Parent == game) then
+				if node == nilNode or node.Custom then
 					return 1
 				end
 
 				local curNode = node.Parent
 				while curNode do
-					if curNode == nilNode then depth = depth + 1 end
+					if curNode == nilNode or curNode.Custom then depth = depth + 1 end
 					curNode = curNode.Parent
 					depth = depth + 1
 				end
@@ -1650,17 +1684,9 @@ local EmbeddedModules = {
 				if Main.Elevated then
 					descendantAddedCon = game.DescendantAdded:Connect(addObject)
 					descendantRemovingCon = game.DescendantRemoving:Connect(removeObject)
-					if gethui().Parent == game and not game:FindFirstChild(gethui().Name) then
-						huidescendantAddedCon = gethui().DescendantAdded:Connect(addObject)
-						huidescendantRemovingCon = gethui().DescendantRemoving:Connect(removeObject)
-					end
 				else
 					descendantAddedCon = game.DescendantAdded:Connect(function(obj) pcall(addObject,obj) end)
 					descendantRemovingCon = game.DescendantRemoving:Connect(function(obj) pcall(removeObject,obj) end)
-					if gethui().Parent == game and not game:FindFirstChild(gethui().Name) then
-						huidescendantAddedCon = gethui().DescendantAdded:Connect(function(obj) pcall(addObject,obj) end)
-						huidescendantRemovingCon = gethui().DescendantRemoving:Connect(function(obj) pcall(removeObject,obj) end)
-					end
 				end
 
 				if Settings.Explorer.UseNameWidth then
@@ -1749,6 +1775,9 @@ local EmbeddedModules = {
 					if not presentClasses.isViableDecompileScript then
 						presentClasses.isViableDecompileScript = env.isViableDecompileScript(obj)
 					end
+					if not presentClasses.isViableFunction then
+						presentClasses.isViableFunction = node.TempFunction
+					end
 					if not class then
 						class = obj.ClassName
 						node.Class = class
@@ -1832,18 +1861,28 @@ local EmbeddedModules = {
 
 				if presentClasses["LuaSourceContainer"] then
 					context:AddRegistered("VIEW_SCRIPT", not presentClasses.isViableDecompileScript or env.decompile == nil)
+					context:AddRegistered("VIEW_SCRIPT2", not presentClasses.isViableDecompileScript or env.decompile2 == nil)
 					context:AddRegistered("VIEW_SENV", getsenv == nil)
+					context:AddRegistered("SENV_FUNCTIONS", getsenv == nil)
 					context:AddRegistered("DUMP_FUNCTIONS", not presentClasses.isViableDecompileScript or env.getupvalues == nil or env.getconstants == nil)
 					context:AddRegistered("SAVE_SCRIPT", not presentClasses.isViableDecompileScript or env.decompile == nil or env.writefile == nil)
 					context:AddRegistered("SAVE_BYTECODE", not presentClasses.isViableDecompileScript or env.getscriptbytecode == nil or env.writefile == nil)
-
 				end
+
 				if presentClasses["ModuleScript"] then
 					context:AddRegistered("VIEW_TABLE", not require)
+					context:AddRegistered("FUNCTIONS", not require)
 				end
+
 				if sMap[nilNode] then
 					context:AddRegistered("REFRESH_NIL")
 					context:AddRegistered("HIDE_NIL")
+				end
+
+				if presentClasses["isViableFunction"] then
+					context:AddRegistered("VIEW_FUNCTION_RETURNVALUE")
+					context:AddRegistered("FUNCTIONS_OF_FUNCTION")
+					context:AddRegistered("FUNCTIONS_OF_PROTOS")
 				end
 
 				Explorer.LastRightClickX, Explorer.LastRightClickY = Mouse.X, Mouse.Y
@@ -2342,6 +2381,12 @@ local EmbeddedModules = {
 					if scr then ScriptViewer.ViewScript(scr) end
 				end})
 
+				context:Register("VIEW_SCRIPT2",{Name = "查看脚本（备用反编译）", IconMap = Explorer.MiscIcons, Icon = "ViewScript", DisabledIcon = "Empty", OnClick = function()
+					local scr = selection.List[1] and selection.List[1].Obj
+					if scr then ScriptViewer.ViewScript2(scr) end
+				end})
+
+
 				context:Register("VIEW_SENV",{Name = "查看脚本环境", IconMap = Explorer.MiscIcons, Icon = "ViewScript", DisabledIcon = "Empty", OnClick = function()
 					local scr = selection.List[1] and selection.List[1].Obj
 					if scr then ScriptViewer.ViewSenv(scr) end
@@ -2351,6 +2396,161 @@ local EmbeddedModules = {
 					local scr = selection.List[1] and selection.List[1].Obj
 					if scr then ScriptViewer.ViewTable(scr) end
 				end})
+
+				local function getPath(obj)
+					if obj.Parent == nil then
+						return "Nil parented"
+					else
+						return Explorer.GetInstancePath(obj)
+					end
+				end
+
+
+				local function AddFunc(Func, Par)
+					if typeof(Func) ~= "function" then return false end
+					local newInst = Instance.new("StringValue")
+					local NewNode = { Obj = newInst, TempFunction = Func, Parent = Par }
+					-- 注册到 nodes 和父节点
+					nodes[newInst] = NewNode
+					table.insert(Par, NewNode)
+					return NewNode
+				end
+
+				local function NewFunc(Index,Func,Par)
+					local Node
+
+					if typeof(Index) == "string" then
+						Node = AddFunc(Func,Par or FunctionsNode)
+						Node.Obj.Name = Index
+						local sus,name = pcall(function()
+							return debug.info("n",Func)
+						end)
+
+						if not sus then
+							Node.Obj.Value = "Unknow : "..tostring(Func)
+						else
+							Node.Obj.Value = name
+						end
+					elseif typeof(Index) == "Instance" then
+						Node = NewFunc(getPath(Index),Func,Par)
+					else
+						local sus,str = pcall(function()
+							return tostring(Index)
+						end)
+						if sus then
+							Node = NewFunc(tostring(Index),Func,Par)
+						else
+							Node = NewFunc("UnknowName",Func,Par)
+						end
+					end
+
+					return Node
+				end
+
+				local function it(i,v,par)
+					if typeof(v) == "table" then
+						local newFolderInst = Instance.new("Folder")
+
+						if typeof(i) == "string" then
+							newFolderInst.Name = i
+						elseif typeof(i) == "Instance" then
+							newFolderInst.Name = NewFunc(getPath(i),Func,Par)
+						else
+							local sus,str = pcall(function()
+								return tostring(i)
+							end)
+							if sus then
+								newFolderInst.Name = tostring(i)
+							else
+								newFolderInst.Name = "UnknowName"
+							end
+						end
+
+						local NewFolderNode = { Obj = newFolderInst, Parent = par or FunctionsNode }
+						nodes[newFolderInst] = NewFolderNode
+						table.insert(par or FunctionsNode, NewFolderNode)
+						for i1, v1 in pairs(v) do
+							it(i1, v1, NewFolderNode)
+						end
+					elseif typeof(v) == "function" then
+						NewFunc(i,v,par)
+					end
+				end
+
+				context:Register("FUNCTIONS",{Name = "创建临时表格内函数Node", IconMap = Explorer.MiscIcons, Icon = "ViewScript", DisabledIcon = "Empty", OnClick = function()
+					local scr = selection.List[1] and selection.List[1].Obj
+					if scr then
+						local ftable = require(scr)
+
+						for i,v in ipairs(FunctionsNode) do
+							nodes[v.Obj] = nil
+							FunctionsNode[i] = nil
+						end	
+
+						for i,v in pairs(ftable) do
+							it(i,v)
+						end
+
+						local newSelection = {FunctionsNode}
+
+						selection:SetTable(newSelection)
+						Explorer.ViewNode(newSelection[1])
+					end
+				end})
+
+				context:Register("SENV_FUNCTIONS",{Name = "创建临时脚本环境内函数Node", IconMap = Explorer.MiscIcons, Icon = "ViewScript", DisabledIcon = "Empty", OnClick = function()
+					local scr = selection.List[1] and selection.List[1].Obj
+					if scr then
+						local ftable = getsenv(scr)
+
+						for i,v in ipairs(FunctionsNode) do
+							nodes[v.Obj] = nil
+							FunctionsNode[i] = nil
+						end
+
+						for i,v in pairs(ftable) do
+							it(i,v)
+						end
+
+						local newSelection = {FunctionsNode}
+
+						selection:SetTable(newSelection)
+						Explorer.ViewNode(newSelection[1])
+					end
+				end})
+
+				context:Register("VIEW_FUNCTION_RETURNVALUE",{Name = "运行并查看函数返回值", OnClick = function()
+					local scr = selection.List[1]
+					if scr and scr.TempFunction then
+						ScriptViewer.ShowText(TableToLuaCode(scr.TempFunction(),true))
+					end
+				end})
+
+				context:Register("FUNCTIONS_OF_FUNCTION",{Name = "以返回值创建新的临时函数", OnClick = function()
+					local scr = selection.List[1]
+					if scr and scr.TempFunction then
+						local ftb = scr.TempFunction()
+						if ftb and typeof(ftb) == "table" then
+							for i,v in pairs(ftb) do
+								it(i,v,scr)
+							end
+						end
+					end
+				end})
+
+				context:Register("FUNCTIONS_OF_PROTOS",{Name = "以Protos创建新的临时函数", OnClick = function()
+					local scr = selection.List[1]
+					if scr and scr.TempFunction then
+						local ftb = debug.getprotos(scr.TempFunction)
+						if ftb and typeof(ftb) == "table" then
+							for i,v in pairs(ftb) do
+								it(i,v,scr)
+							end
+						end
+					end
+				end})
+
+
 				context:Register("DUMP_FUNCTIONS",{Name = "转储函数", IconMap = Explorer.MiscIcons, Icon = "SelectChildren", DisabledIcon = "Empty", OnClick = function()
 					local scr = selection.List[1] and selection.List[1].Obj
 					if scr then ScriptViewer.DumpFunctions(scr) end
@@ -2475,6 +2675,7 @@ local EmbeddedModules = {
 				context:Register("HIDE_NIL",{Name = "隐藏", OnClick = function()
 					Explorer.HideNilInstances()
 				end})
+
 
 				Explorer.RightClickContext = context
 			end
@@ -3359,6 +3560,13 @@ return search]==]
 				nilNode.Obj.Name = "Nil Instances"
 				nilNode.Locked = true
 
+				HiddenGuiNode.Obj.Name = "HiddenGui"
+				HiddenGuiNode.Locked = true
+
+
+				FunctionsNode.Obj.Name = "TempFunctions"
+				FunctionsNode.Locked = true
+
 				local explorerItems = create({
 					{1,"Folder",{Name="ExplorerItems",}},
 					{2,"Frame",{BackgroundColor3=Color3.new(0.20392157137394,0.20392157137394,0.20392157137394),BorderSizePixel=0,Name="ToolBar",Parent={1},Size=UDim2.new(1,0,0,22),}},
@@ -3452,14 +3660,11 @@ return search]==]
 					nodes[nilNode.Obj] = nilNode
 				end
 
+				nodes[HiddenGuiNode.Obj] = HiddenGuiNode
+				nodes[FunctionsNode.Obj] = FunctionsNode
+
 				Explorer.SetupConnections()
 				local insts = getDescendants(game)
-				if gethui().Parent == game and not game:FindFirstChild(gethui().Name) then
-					insts[#insts+1] = gethui()
-					for i,v in pairs(getDescendants(gethui())) do
-						insts[#insts+1] = v
-					end
-				end
 
 				if Main.Elevated then
 					for i = 1,#insts do
@@ -3486,6 +3691,20 @@ return search]==]
 						nodes[obj] = newNode
 						par[#par+1] = newNode
 					end
+				end
+
+				if gethui() then
+					local hui = gethui()
+
+					for _, child in ipairs(hui:GetDescendants()) do
+						addObject(child,true)
+					end
+
+					huidescendantAddedCon = hui.DescendantAdded:Connect(function(Child)
+						addObject(Child,true)
+					end)
+
+					huidescendantRemovingCon = hui.DescendantRemoving:Connect(removeObject)
 				end
 			end
 
@@ -11255,27 +11474,27 @@ return search]==]
 					["VIPServerOwnerId"] = true
 				}
 			}
-			
+
 			Properties.CustomProps = {
 				["StarterGui"] = (function()
 					local tb = {}
-					
+
 					for i,v in pairs(Enum.CoreGuiType:GetEnumItems()) do
 						local function Get(Obj)
 							return Obj:GetCoreGuiEnabled(v) 
 						end
-						
+
 						local function Set(Obj,Val)
 							Obj:SetCoreGuiEnabled(v,Val)
 						end
-						
+
 						table.insert(tb, {
 							Name = v.Name,
 							Get = Get,
 							Set = Set,
 						})
 					end
-					
+
 					return tb
 				end)(),
 				["Humanoid"] = (function()
@@ -11287,7 +11506,7 @@ return search]==]
 							end,
 						}
 					}
-					
+
 					for i,v in pairs(Enum.HumanoidStateType:GetEnumItems()) do
 						local function Get(Obj)
 							return Obj:GetStateEnabled(v) 
@@ -11303,7 +11522,7 @@ return search]==]
 							Set = Set,
 						})
 					end
-					
+
 					return tb
 				end)(),
 				["Player"] = {
@@ -11448,7 +11667,7 @@ return search]==]
 					}
 				}
 			}
-			
+
 			Properties.ExpandableTypes = {
 				["Vector2"] = true,
 				["Vector3"] = true,
@@ -11848,15 +12067,15 @@ return search]==]
 							end
 						end
 					end
-					
+
 					local CustomProp
-					
+
 					for c,tbl in pairs(Properties.CustomProps) do
 						if isa(obj,c) then
 							CustomProp = {CustomProp and unpack(CustomProp),unpack(tbl)}
 						end
 					end
-					
+
 					if CustomProp then
 						for _,tab in pairs(CustomProp) do
 							local name = tab.Name
@@ -11864,9 +12083,9 @@ return search]==]
 							if tab.Get then
 								val = tab.Get(obj)
 							end
-							
+
 							local typ = typeof(val)
-							
+
 							local category = (typ == "Instance" and "Class") or (typ == "EnumItem" and "Enum") or "Other"
 							local valType = {Name = typeNameConvert[typ] or typ, Category = category}
 							local FinalCustomProp = {IsCustom = true, Name = "CUSTOM_"..name, CustomName = name, DisplayName = name, Class = "Instance", ValueType = valType, Category = "Custom", Tags = {}, Get = tab.Get, Set = tab.Set}
@@ -12216,7 +12435,7 @@ return search]==]
 
 					Properties.DisplayAttributeContext(prop)
 				end)
-				
+
 				local function getPath(obj)
 					if obj.Parent == nil then
 						return "Nil parented"
@@ -12224,7 +12443,7 @@ return search]==]
 						return Explorer.GetInstancePath(obj)
 					end
 				end
-				
+
 				valueFrame.SoundPreview.ControlButton.MouseButton1Click:Connect(function()
 					if Properties.PreviewSound and Properties.PreviewSound.Playing then
 						Properties.SetSoundPreview(false)
@@ -13960,6 +14179,11 @@ return search]==]
 				window:Show()
 			end
 
+			ScriptViewer.ShowText = function(scr)
+				codeFrame:SetText(scr)
+				window:Show()
+			end
+
 			ScriptViewer.ViewSenv = function(scr)
 				local oldtick = tick()
 				local s,source = pcall(getsenv or function() end,scr)
@@ -14039,9 +14263,46 @@ return search]==]
 				window:Show()
 			end
 
+			ScriptViewer.ViewScript2 = function(scr)
+				local oldtick = tick()
+				local s,source = pcall(env.decompile2 or function() end,scr)
+
+				if not s or not source then
+					PreviousScr = nil
+					dumpbtn.TextColor3 = Color3.new(0.5,0.5,0.5)
+					source = "-- Unable to view source.\n"
+					source = source .. "-- Script Path: "..getPath(scr).."\n"
+					if (scr.ClassName == "Script" and (scr.RunContext == Enum.RunContext.Legacy or scr.RunContext == Enum.RunContext.Server)) or not scr:IsA("LocalScript") then
+						source = source .. "-- Reason: The script is not running on client. (attempt to decompile ServerScript or 'Script' with RunContext Server)\n"
+					elseif not env.decompile then
+						source = source .. "-- Reason: Your executor does not support decompiler. (missing 'decompile' function)\n"
+					else
+						source = source .. "-- Reason: Unknown\n"
+					end
+					source = source .. "-- Executor: "..executorName.." ("..executorVersion..")"
+				else
+					PreviousScr = scr
+					dumpbtn.TextColor3 = Color3.new(1,1,1)
+
+					local decompiled = source
+
+					source = "-- Script Path: "..getPath(scr).."\n"
+					source = source .. "-- Took "..tostring(math.floor( (tick() - oldtick) * 100) / 100).."s to decompile.\n"
+					source = source .. "-- Executor: "..executorName.." ("..executorVersion..")\n\n"
+
+					source = source .. decompiled
+
+					oldtick = nil
+					decompiled = nil
+				end
+
+				codeFrame:SetText(source)
+				window:Show()
+			end
+
+
 			return ScriptViewer
 		end
-
 		-- TODO: Remove when open source
 		if gethsfuncs then
 			_G.moduleData = {InitDeps = initDeps, InitAfterMain = initAfterMain, Main = main}
@@ -14552,60 +14813,58 @@ Main = (function()
 			end
 			return false
 		end
+		
 		env.request = (syn and syn.request) or (http and http.request) or http_request or (fluxus and fluxus.request) or request
 
-		env.decompile = decompile or (function()
-			-- by lovrewe
-			--warn("No built-in decompiler exists, using Konstant decompiler...")
-			--assert(getscriptbytecode, "Exploit not supported.")
+		local decompile2 = function(scr)
+			assert(getscriptbytecode, "Exploit does not support getscriptbytecode")
+			local ok, bytecode = pcall(getscriptbytecode, scr)
+			if not ok then
+				return "-- failed to read script bytecode\n--[[\n" .. tostring(bytecode) .. "\n--]]"
+			end
 
-			if not env.getscriptbytecode then --[[warn('Konstant decompiler is not supported. "getscriptbytecode" is missing.')]] return end
-
-			local API = "http://api.plusgiant5.com"
-
-			local last_call = 0
-
-			local request = env.request
-
-			local function call(konstantType, scriptPath)
-				local success, bytecode = pcall(env.getscriptbytecode, scriptPath)
-
-				if (not success) then
-					return `-- Failed to get script bytecode, error:\n\n--[[\n{bytecode}\n--]]`
+			local encoder = base64_encode
+			if not encoder then
+				encoder = function(data)
+					local b = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/'
+					return ((data:gsub('.', function(x)
+						local r,byte = '',x:byte()
+						for i=8,1,-1 do
+							r = r .. (byte % 2^i - byte % 2^(i-1) > 0 and '1' or '0')
+						end
+						return r
+					end)..'0000'):gsub('%d%d%d?%d?%d?%d?', function(x)
+						if #x < 6 then return '' end
+						local c = 0
+						for i=1,6 do
+							c = c + (x:sub(i,i) == '1' and 2^(6-i) or 0)
+						end
+						return b:sub(c+1,c+1)
+					end)..({ '', '==', '=' })[#data % 3 + 1])
 				end
+			end
 
-				local time_elapsed = os.clock() - last_call
-				if time_elapsed <= .5 then
-					task.wait(.5 - time_elapsed)
-				end
-
-				local httpResult = request({
-					Url = API .. konstantType,
-					Body = bytecode,
-					Method = "POST",
-					Headers = {
-						["Content-Type"] = "text/plain"
-					}
+			local res = env.request({
+				Url = "https://api.lua.expert/decompile",
+				Method = "POST",
+				Headers = {
+					["content-type"] = "application/json"
+				},
+				Body = HttpService:JSONEncode({
+					script = encoder(bytecode)
 				})
-
-				last_call = os.clock()
-
-				if (httpResult.StatusCode ~= 200) then
-					return `-- Error occurred while requesting Konstant API, error:\n\n--[[\n{httpResult.Body}\n--]]`
-				else
-					return httpResult.Body
-				end
+			})
+			
+			if not res or res.StatusCode ~= 200 then
+				return "-- api request error\n--[[\n" .. (res and res.Body or "no response") .. "\n--]]"
 			end
 
-			local function decompile(scriptPath)
-				return call("/konstant/decompile", scriptPath)
-			end
+			return res.Body
+		end
 
-			getgenv().decompile = decompile
 
-			env.decompile = decompile
-			return decompile
-		end)()
+		env.decompile = decompile or decompile2
+		env.decompile2 = decompile2
 
 		if identifyexecutor then
 			Main.Executor = identifyexecutor()
