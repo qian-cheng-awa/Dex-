@@ -914,7 +914,6 @@ local EmbeddedModules = {
 			local updateDebounce,refreshDebounce = false,false
 			local nilNode = {Obj = Instance.new("Folder")}
 			local FunctionsNode = {Obj = Instance.new("Folder"),Custom = true}
-			local HiddenGuiNode = {Obj = Instance.new("Folder"),Custom = true}
 			local idCounter = 0
 			local scrollV,scrollH,clipboard
 			local renameBox,renamingNode,searchFunc
@@ -940,9 +939,7 @@ local EmbeddedModules = {
 
 				-- Nil Handling
 				if not par then
-					if rootParObj == gethui() then
-						par = HiddenGuiNode
-					elseif nilMap[root] then
+					if nilMap[root] then
 						nilCons[root] = nilCons[root] or {
 							connectSignal(root.ChildAdded,addObject),
 							connectSignal(root.AncestryChanged,moveObject),
@@ -1314,14 +1311,6 @@ local EmbeddedModules = {
 						if expanded[nilNode] then
 							recur(nilNode,2)
 						end
-					end
-				end
-
-				if not (isSearching and not searchResults[HiddenGuiNode]) then
-					tree[count] = HiddenGuiNode
-					count = count + 1
-					if expanded[HiddenGuiNode] then
-						recur(HiddenGuiNode, 2)
 					end
 				end
 
@@ -3560,10 +3549,6 @@ return search]==]
 				nilNode.Obj.Name = "Nil Instances"
 				nilNode.Locked = true
 
-				HiddenGuiNode.Obj.Name = "HiddenGui"
-				HiddenGuiNode.Locked = true
-
-
 				FunctionsNode.Obj.Name = "TempFunctions"
 				FunctionsNode.Locked = true
 
@@ -3659,8 +3644,6 @@ return search]==]
 				if env.getnilinstances then
 					nodes[nilNode.Obj] = nilNode
 				end
-
-				nodes[HiddenGuiNode.Obj] = HiddenGuiNode
 				nodes[FunctionsNode.Obj] = FunctionsNode
 
 				Explorer.SetupConnections()
@@ -3691,20 +3674,6 @@ return search]==]
 						nodes[obj] = newNode
 						par[#par+1] = newNode
 					end
-				end
-
-				if gethui() then
-					local hui = gethui()
-
-					for _, child in ipairs(hui:GetDescendants()) do
-						addObject(child,true)
-					end
-
-					huidescendantAddedCon = hui.DescendantAdded:Connect(function(Child)
-						addObject(Child,true)
-					end)
-
-					huidescendantRemovingCon = hui.DescendantRemoving:Connect(removeObject)
 				end
 			end
 
@@ -14813,7 +14782,7 @@ Main = (function()
 			end
 			return false
 		end
-		
+
 		env.request = (syn and syn.request) or (http and http.request) or http_request or (fluxus and fluxus.request) or request
 
 		local decompile2 = function(scr)
@@ -14854,7 +14823,7 @@ Main = (function()
 					script = encoder(bytecode)
 				})
 			})
-			
+
 			if not res or res.StatusCode ~= 200 then
 				return "-- api request error\n--[[\n" .. (res and res.Body or "no response") .. "\n--]]"
 			end
