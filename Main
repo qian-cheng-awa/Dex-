@@ -31,6 +31,7 @@ local nodes = {}
 local oldgame = game
 local game = workspace.Parent
 local HttpService = game:GetService("HttpService")
+local ReflectionService = game:GetService("ReflectionService")
 
 local LazyFix
 
@@ -1801,6 +1802,9 @@ local EmbeddedModules = {
 				if env.setclipboard then context:AddRegistered("COPY_PATH") end
 				context:AddRegistered("INSERT_OBJECT")
 				context:AddRegistered("SAVE_INST")
+				context:AddRegistered("VIEW_METHODS")
+				context:AddRegistered("VIEW_SIGNALS")
+				context:AddRegistered("VIEW_HP")
 				-- context:AddRegistered("CALL_FUNCTION")
 				-- context:AddRegistered("VIEW_CONNECTIONS")
 				-- context:AddRegistered("GET_REFERENCES")
@@ -2242,7 +2246,171 @@ local EmbeddedModules = {
 						env.setclipboard(table.concat(resList,"\n"))
 					end
 				end})
+				
+				local SomeDefaults = {
+					Method = {},
+					Signal = {},
+				}
 
+				for i,v in ipairs(ReflectionService:GetEventsOfClass("Instance")) do
+					SomeDefaults.Signal[v.Name] = v
+				end
+
+				for i,v in ipairs(ReflectionService:GetMethodsOfClass("Instance")) do
+					SomeDefaults.Method[v.Name] = v
+				end
+
+				local function QueryMethods(Object)
+					local Class = Object.ClassName
+
+					local success, methods = pcall(function()
+						return ReflectionService:GetMethodsOfClass(Class)
+					end)
+
+					if not success or not methods then
+						return
+					end
+
+					local methodOutput = {}
+
+					for _, method in methods do
+						local Method = method.Name
+						if SomeDefaults.Method[Method] then
+							continue
+						end
+						local Params = {}
+
+						if #method.Parameters > 0 then
+							for _, param in method.Parameters do
+								local typeString = param.Type.InstanceType or param.Type.EngineType
+								table.insert(Params, param.Name..": "..typeString)
+							end
+						end
+
+						local isDeprecated = false
+						local depMessage = nil
+
+						if method.Display and method.Display.DeprecationMessage then
+							isDeprecated = true
+							depMessage = method.Display.DeprecationMessage
+						end
+
+						methodOutput[Method] = {
+							Params = Params,
+							Deprecated = isDeprecated,
+							DeprecatedMessage = depMessage,
+						}
+					end
+
+					return methodOutput
+				end
+				
+				local function QuerySignals(Object)
+					local Class = Object.ClassName
+
+					local success, events = pcall(function()
+						return ReflectionService:GetEventsOfClass(Class)
+					end)
+
+					if not success or not events then
+						return
+					end
+
+					local eventOutput = {}
+
+					for _, event in events do
+						if SomeDefaults.Signal[event.Name] then
+							continue
+						end
+						local Signal = event.Name
+
+						local Params = {}
+
+						if #event.Parameters > 0 then
+							for _, param in event.Parameters do
+								local typeString = param.Type.InstanceType or param.Type.EngineType
+								table.insert(Params, param.Name.." : "..typeString)
+							end
+						end
+
+						local isDeprecated = false
+						local depMessage = nil
+
+						if event.Display and event.Display.DeprecationMessage then
+							isDeprecated = true
+							depMessage = event.Display.DeprecationMessage
+						end
+
+						local CanReplicate = "<unknown?>"
+						if cansignalreplicate then
+							local bool, RealSignal = pcall(function()
+								return Object[Signal]
+							end)
+
+							if bool and typeof(RealSignal) == "RBXScriptSignal" then
+								local RepBool, RepResult = pcall(function()
+									return cansignalreplicate(RealSignal)
+								end)
+
+								if RepBool then
+									CanReplicate = tostring(RepResult)
+								end
+							end
+						end
+
+						eventOutput[Signal] = {
+							Params = Params,
+							Deprecated = isDeprecated,
+							DeprecatedMessage = depMessage,
+							CanReplicate = CanReplicate
+						}
+					end
+
+					return eventOutput
+				end
+				
+				local function GetHiddenPropties(Instance)
+					local HiddenProperties = {}
+
+					for i,v in getproperties(Instance) do
+						local Success, Error = pcall(function()
+							return Instance[i]
+						end)
+
+						if Success == false and gethiddenproperty(Instance, i) then
+							HiddenProperties[i] = gethiddenproperty(Instance, i)
+						end
+					end
+
+
+					return HiddenProperties
+				end
+
+				
+				context:Register("VIEW_METHODS",{Name = "查看目标的方法", IconMap = Explorer.MiscIcons, Icon = "ViewScript", DisabledIcon = "Empty", OnClick = function()
+					local sList = selection.List
+					if #sList == 1 then
+						local obj = sList[1].Obj
+						ScriptViewer.ShowText(TableToLuaCode(QueryMethods(obj),true))
+					end
+				end})
+				
+				context:Register("VIEW_SIGNALS",{Name = "查看目标的信号", IconMap = Explorer.MiscIcons, Icon = "ViewScript", DisabledIcon = "Empty", OnClick = function()
+					local sList = selection.List
+					if #sList == 1 then
+						local obj = sList[1].Obj
+						ScriptViewer.ShowText(TableToLuaCode(QuerySignals(obj),true))
+					end
+				end})
+				
+				context:Register("VIEW_HP",{Name = "查看目标的隐藏属性", IconMap = Explorer.MiscIcons, Icon = "ViewScript", DisabledIcon = "Empty", OnClick = function()
+					local sList = selection.List
+					if #sList == 1 then
+						local obj = sList[1].Obj
+						ScriptViewer.ShowText(TableToLuaCode(GetHiddenPropties(obj),true))
+					end
+				end})
+				
 				context:Register("INSERT_OBJECT",{Name = "插入实例", IconMap = Explorer.MiscIcons, Icon = "InsertObject", OnClick = function()
 					local mouse = Main.Mouse
 					local x,y = Explorer.LastRightClickX or mouse.X, Explorer.LastRightClickY or mouse.Y
