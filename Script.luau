@@ -434,7 +434,7 @@ const Urls = {
 		function() return require(script.RMD) end
 	},
 	FileIconMap = {
-		"",
+		"https://raw.githubusercontent.com/qian-cheng-awa/Dex-/refs/heads/Remake/FileExplorerIcons.PNG",
 		true,
 		function() return "rbxassetid://102278811949320" end,
 	},
