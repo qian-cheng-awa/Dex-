@@ -18,7 +18,6 @@ const Mouse = Player:GetMouse()
 const RunService = game:GetService("RunService")
 const IsStudio = RunService:IsStudio()
 const UserInputService = game:GetService("UserInputService")
-const SerializationService = game:GetService("SerializationService")
 
 const RandomNameLength = 25
 
