@@ -38,6 +38,10 @@ const RunService = game:GetService("RunService")
 const IsStudio = RunService:IsStudio()
 const UserInputService = game:GetService("UserInputService")
 
+
+const DexFilePath = "Dex(Obi_xieO)/"
+const UrlFilePath = DexFilePath.."UrlCache/"
+
 const RandomNameLength = 25
 
 const DexEnv = _G.DexEnvironment or {}
@@ -294,6 +298,30 @@ function PointInArea(Point,LeftTop,RightBottom)
 	end
 end
 
+function crc32(inputString)
+	if not inputString or inputString == "" then
+		return 0
+	end
+
+	local crc = 0xFFFFFFFF
+	local poly = 0xEDB88320
+
+	for i = 1, #inputString do
+		local byte = string.byte(inputString, i)
+		crc = bit32.bxor(crc, byte)
+
+		for _ = 1, 8 do
+			if bit32.band(crc, 1) == 1 then
+				crc = bit32.bxor(bit32.rshift(crc, 1), poly)
+			else
+				crc = bit32.rshift(crc, 1)
+			end
+		end
+	end
+
+	return string.format("%08X", bit32.bnot(crc))
+end
+
 function HttpGet(Url,Cache)
 	if IsStudio then
 		local Returnvalue
@@ -305,13 +333,17 @@ function HttpGet(Url,Cache)
 		local Returnvalue
 
 		if Cache then
-			if isfile(UrlFilePath..Url) then
-				return readfile(UrlFilePath..Url)
+			local n = crc32(Url)
+			
+			if isfile(UrlFilePath..n) then
+				return readfile(UrlFilePath..n)
 			end
+			
+			print(Url)
 
 			Returnvalue = game:HttpGet(Url)
 
-			writefile(UrlFilePath..Url,Returnvalue)
+			writefile(UrlFilePath..n,Returnvalue)
 		else
 			Returnvalue = game:HttpGet(Url)
 		end
@@ -434,15 +466,13 @@ const Urls = {
 		function() return require(script.RMD) end
 	},
 	FileIconMap = {
-		"https://raw.githubusercontent.com/qian-cheng-awa/Dex-/refs/heads/Remake/FileExplorerIcons.PNG",
+		"https://raw.githubusercontent.com/qian-cheng-awa/Dex-/refs/heads/Remake/FileExplorerIcons.png",
 		true,
 		function() return "rbxassetid://102278811949320" end,
 	},
 }
 
 
-const DexFilePath = "Dex(Obi_xieO)/"
-const UrlFilePath = DexFilePath.."UrlCache/"
 const Modules = {
 	ParseXML = (function()
 		local func = function()
