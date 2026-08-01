@@ -1,16 +1,35 @@
--- [-[ 初始化环境 ]-]
+--[[
+	[- 更新日志 -]
+1. 文件资源管理器 + 适配studio文件系统
+
+2. 代码更改，修复bug
+]]
 
 --[[
 	[- 待更新 -]
 1. Menu:Insert() 插入实例
 
-2. Menu:File(后缀...) 选择文件
+2. 属性编辑器
 
-3. 属性编辑器
-
-4. 更多菜单选项
+3. 更多菜单选项
 
 ]]
+
+-- [-[ 初始化环境 ]-]
+
+
+const StudioFileTest = {
+	Folder = {
+		Folder = {
+
+		},
+		["Lol.mp3"] = "",
+		["Lol.mp4"] = "",
+		["test.txt"] = "Hello txtfile",
+	},
+	["Main.lua"] = [[print("hello world")]],
+}
+
 
 const Players = game:GetService("Players")
 const Player = Players.LocalPlayer
@@ -78,6 +97,116 @@ RegisterFunction("cloneref",function(obj)
 	return newobj
 end)
 
+if IsStudio then
+	local function AssignParents(tbl, parent)
+		if parent then
+			setmetatable(tbl,{
+				__index = function(t,k)
+					if k == "Info" then
+						return parent
+					end
+
+					return rawget(t,k)
+				end,
+			})
+		end
+
+		for i,v in pairs(tbl) do
+			if typeof(v) == "table" then
+				AssignParents(v, {Index = i, Parent = tbl})
+			end
+		end
+	end
+
+	AssignParents(StudioFileTest)
+
+	local function GetPath(Folder,FileName)
+		local Path = ""
+		if FileName then
+			Path = "/"..FileName
+		end
+
+		while Folder do
+			local Info = Folder.Info
+
+			if Info then
+				Path = "/"..Info.Index..Path
+			else
+				break
+			end
+
+			Folder = Info.Parent
+		end
+
+		Path = Path:sub(2)
+
+		return Path
+	end
+
+	
+	local function get(path)
+		local args = path:split("/")
+		local f = StudioFileTest
+		for i = 1,#args do
+			local str = args[i]
+			if str == "" then
+				break
+			end
+			f = f[str]
+		end
+		return f
+	end
+	
+	RegisterFunction("readfile",function(path)
+		return get(path)
+	end)
+	
+	RegisterFunction("writefile",function(path,data)
+		local args = path:split("/")
+		
+		while args[#args] == "" do
+			args[#args] = nil
+		end
+		
+		local arg = args[#args]
+		args[#args] = nil
+		
+		local f = get(path)
+		
+		f[arg] = data
+	end)
+	
+	RegisterFunction("isfile",function(path)
+		return typeof(get(path)) == "string"
+	end)
+	
+	RegisterFunction("isfolder",function(path)
+		return typeof(get(path)) == "table"
+	end)
+	
+	RegisterFunction("listfiles",function(path)
+		if not DexEnv.genv.isfolder(path) then warn("Path is not folder") end
+		
+		local f = get(path)
+		
+		local tb = {}
+		
+		local folderpath = GetPath(f)
+		
+		if folderpath == "" then
+			for i,v in pairs(f) do
+				table.insert(tb,i)
+			end
+		else
+			for i,v in pairs(f) do
+				table.insert(tb,folderpath.."/"..i)
+			end
+		end
+
+		return tb
+	end)
+end
+
 if game.GetObjects then
 	RegisterFunction("getobjects",function(...)
 		return game:GetObjects(...)
@@ -115,6 +244,12 @@ RegisterFunction("gethui",function()
 		Player:Kick("没有安全UI环境，尝试更换注入器")
 	end
 end)
+
+if not IsStudio then
+	for i,v in pairs(getgenv()) do
+		DexEnv.genv[i] = v
+	end
+end
 
 -- [-[ 全局函数 ]-]
 function ImportRBXM(FileRBXM : string)
@@ -297,7 +432,12 @@ const Urls = {
 		"https://raw.githubusercontent.com/CloneTrooper1019/Roblox-Client-Tracker/roblox/ReflectionMetadata.xml",
 		false,
 		function() return require(script.RMD) end
-	}
+	},
+	FileIconMap = {
+		"",
+		true,
+		function() return "rbxassetid://102278811949320" end,
+	},
 }
 
 
@@ -522,7 +662,7 @@ end
 -- [-[ Class图标 ]-]
 
 Modules.IconMap = {
-	Info = {
+	Classes = {
 		Icons = {
 			Accessory = 1,
 			Actor = 2,
@@ -843,39 +983,1179 @@ Modules.IconMap = {
 		Witdh = 18,
 		Height = 18,
 	},
+	Files = {
+		Icons = {
+			["cmd"] = 14,
+			["exe"] = 15,
+			["dll"] = 16,
+			["doc"] = 17,
+			["docx"] = 18,
+			["drv"] = 19,
+			["flv"] = 21,
+			["go"] = 22,
+			["html"] = 23,
+			["img"] = 24,
+			["iso"] = 25,
+			["java"] = 26,
+			["m4a"] = 27,
+			["mkv"] = 28,
+			["mov"] = 29,
+			["mp3"] = 30,
+			["mp4"] = 31,
+			["mpeg"] = 32,
+			["msi"] = 33,
+			["nfo"] = 34,
+			["odp"] = 35,
+			["ods"] = 36,
+			["odt"] = 37,
+			["ogg"] = 38,
+			["pdf"] = 39,
+			["php"] = 40,
+			["placeholder"] = 9,
+			["ppt"] = 41,
+			["pptx"] = 42,
+			["psd"] = 43,
+			["py"] = 44,
+			["rar"] = 45,
+			["rb"] = 46,
+			["rs"] = 47,
+			["rtf"] = 48,
+			["sys"] = 49,
+			["txt"] = 50,
+			["torrent"] = 51,
+			["wav"] = 1,
+			["wma"] = 2,
+			["wmv"] = 3,
+			["xls"] = 4,
+			["xlsx"] = 5,
+			["yaml"] = 6,
+			["yml"] = 7,
+			["zip"] = 8
+		},
+		IconsType = {
+			html = 1,
+			audio = 2,
+			xls = 4,
+			video = 10,
+			cmd = 14,
+			exe = 15,
+			txt = 50,
+			zip = 8,
+			dll = 16,
+		},
+		types = {
+			cmd = {
+				"bat",
+				"cmd",
+			},
+			html = {
+				"htm",
+				"html",
+			},
+			exe = {
+				"exe",
+				"com",
+				"msi",
+			},
+			zip = {
+				"7z",
+				"rar",
+				"zip",
+				"tar",
+			},
+			audio = {
+				"m4a",
+				"mp3",
+				"wma",
+				"wav",
+				"ogg",
+			},
+			video = {
+				"3gp",
+				"avi",
+				"flv",
+				"mkv",
+				"mov",
+				"mp4",
+				"mpeg",
+			},
+			txt = {
+				"toml",
+				"txt",
+				"lua",
+				"text",
+				"json",
+			},
+			dll = {
+				"dll",
+				"sys",
+				"ini",
+				"drv"
+			}
+		},
+		IconSize = 64,
+		Witdh = 7,
+		Height = 8,
+	}
 }
 
 const IconMap = Modules.IconMap
 
 function IconMap:Init()
-	const MapPng = Modules.InitModules["IconMap"]
+	const ClassMapPng = Modules.InitModules["IconMap"]
+	const FileIconMapPng = Modules.InitModules["FileIconMap"]
 
 	if IsStudio then
-		Modules.IconMap = Urls.IconMap[3]()
+		IconMap.Classes.Map = Urls.IconMap[3]()
 	else
-		Modules.IconMap = getcustomasset(UrlFilePath..Urls.IconMap)
+		IconMap.Classes.Map = getcustomasset(UrlFilePath..Urls.IconMap[1])
+	end
+	
+	if IsStudio then
+		IconMap.Files.Map = Urls.FileIconMap[3]()
+	else
+		IconMap.Files.Map = getcustomasset(UrlFilePath..Urls.FileIconMap[1])
+	end
+	
+	function IconMap:Apply(Image,Id,Size,Offset)
+		Image.ImageRectOffset = Offset
+		Image.ImageRectSize = Size
+		Image.Image = Id
 	end
 
+	function IconMap:GetIcon(Image,Map,Index)
+		if not Map.Icons or not Map.IconSize or not Map.Map then
+			return ""
+		end
+		
+		Image.Image = Map.Map
+
+		const IconSize = Vector2.new(Map.IconSize,Map.IconSize)
+
+		local X = Index % Map.Witdh
+		local Y = Index//Map.Witdh
+		
+		IconMap:Apply(Image,Map.Map,IconSize,Vector2.new(
+			IconSize.X * X,
+			IconSize.Y * Y
+		))
+	end
 
 	function IconMap:GetClassIcon(Image : ImageLabel , ClassName : string)
-		
-		const index = (IconMap.Info.Icons[ClassName] or (isService(ClassName) and IconMap.Info.Icons.Service) or IconMap.Info.Icons.Placeholder) - 1
+		const index = (IconMap.Classes.Icons[ClassName] or (isService(ClassName) and IconMap.Classes.Icons.Service) or IconMap.Classes.Icons.Placeholder) - 1
 
 		if index then
-			Image.Image = Modules.IconMap
-			
-			const IconSize = Vector2.new(IconMap.Info.IconSize,IconMap.Info.IconSize)
-			
-			Image.ImageRectOffset = Vector2.new(
-				IconSize.X * (index % IconMap.Info.Height),
-				IconSize.Y * math.floor(index / IconMap.Info.Height)
-			)
-			
-			Image.ImageRectSize = IconSize
+			return IconMap:GetIcon(Image,IconMap.Classes,index)
 		else
 			return ""
 		end
 	end
+	
+	function IconMap:GetFileMap(Image : ImageLabel , FileType : string)
+		if FileType == "folder" then
+			return IconMap:GetClassIcon(Image,"Folder")
+		end
+		
+		local index = (IconMap.Files.Icons[FileType] or IconMap.Files.Icons.placeholder) - 1
+		
+		for i,v in pairs(IconMap.Files.types) do
+			if table.find(v,FileType) then
+				index = IconMap.Files.IconsType[i] - 1
+			end
+		end
+
+		if index then
+			return IconMap:GetIcon(Image,IconMap.Files,index)
+		else
+			return ""
+		end
+	end
+end
+
+-- [-[ 文件资源管理器 ]-]
+
+local FileExplorerUi
+
+do
+	local FileExplorer = Instance.new("ScreenGui")
+	FileExplorer.Name = "FileExplorer"
+	FileExplorer.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+
+	local MainFrame = Instance.new("Frame")
+	MainFrame.BorderColor3 = Color3.fromRGB(0, 0, 0)
+	MainFrame.Parent = FileExplorer
+	MainFrame.AnchorPoint = Vector2.new(0.5, 0.5)
+	MainFrame.Size = UDim2.fromOffset(600, 400)
+	MainFrame.Name = "MainFrame"
+	MainFrame.Position = UDim2.fromScale(0.5, 0.5)
+	MainFrame.BorderSizePixel = 0
+	MainFrame.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+
+	local UICorner = Instance.new("UICorner")
+	UICorner.TopLeftRadius = UDim.new(0, 5)
+	UICorner.Parent = MainFrame
+	UICorner.TopRightRadius = UDim.new(0, 5)
+	UICorner.BottomRightRadius = UDim.new(0, 5)
+	UICorner.CornerRadius = UDim.new(0, 5)
+	UICorner.BottomLeftRadius = UDim.new(0, 5)
+
+	local UIShadow = Instance.new("UIShadow")
+	UIShadow.Parent = MainFrame
+	UIShadow.Transparency = 0.85
+	UIShadow.BlurRadius = UDim.new(0, 5)
+
+	local Topbar = Instance.new("Frame")
+	Topbar.Parent = MainFrame
+	Topbar.Size = UDim2.new(1, 0, 0, 30)
+	Topbar.Name = "Topbar"
+	Topbar.BorderColor3 = Color3.fromRGB(0, 0, 0)
+	Topbar.BorderSizePixel = 0
+	Topbar.BackgroundColor3 = Color3.fromRGB(245, 247, 250)
+
+	local UICorner = Instance.new("UICorner")
+	UICorner.TopLeftRadius = UDim.new(0, 5)
+	UICorner.Parent = Topbar
+	UICorner.TopRightRadius = UDim.new(0, 5)
+	UICorner.BottomRightRadius = UDim.new(0, 5)
+	UICorner.CornerRadius = UDim.new(0, 5)
+	UICorner.BottomLeftRadius = UDim.new(0, 5)
+
+	local Frame = Instance.new("Frame")
+	Frame.BorderColor3 = Color3.fromRGB(0, 0, 0)
+	Frame.AnchorPoint = Vector2.new(1, 1)
+	Frame.Parent = Topbar
+	Frame.Size = UDim2.fromScale(1, 0.5)
+	Frame.Position = UDim2.fromScale(1, 1)
+	Frame.BorderSizePixel = 0
+	Frame.BackgroundColor3 = Color3.fromRGB(245, 247, 250)
+
+	local Close = Instance.new("TextButton")
+	Close.FontFace = Font.new("rbxasset://fonts/families/RobotoMono.json",Enum.FontWeight.ExtraLight,Enum.FontStyle.Normal)
+	Close.Parent = Topbar
+	Close.AnchorPoint = Vector2.new(1, 1)
+	Close.SizeConstraint = Enum.SizeConstraint.RelativeYY
+	Close.Size = UDim2.fromScale(1, 1)
+	Close.Name = "Close"
+	Close.TextColor3 = Color3.fromRGB(0, 0, 0)
+	Close.BorderColor3 = Color3.fromRGB(0, 0, 0)
+	Close.Text = "x"
+	Close.BorderSizePixel = 0
+	Close.TextWrapped = true
+	Close.BackgroundTransparency = 1
+	Close.Position = UDim2.fromScale(1, 1)
+	Close.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+	Close.TextScaled = true
+
+	local Path = Instance.new("Frame")
+	Path.BorderColor3 = Color3.fromRGB(0, 0, 0)
+	Path.Parent = MainFrame
+	Path.Position = UDim2.new(0.025, 0, 0, 40)
+	Path.Name = "Path"
+	Path.Size = UDim2.new(0.7, 0, 0, 30)
+	Path.BorderSizePixel = 0
+	Path.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+
+	local UIStroke = Instance.new("UIStroke")
+	UIStroke.Parent = Path
+	UIStroke.Transparency = 0.75
+
+	local UIListLayout = Instance.new("UIListLayout")
+	UIListLayout.Parent = Path
+	UIListLayout.Padding = UDim.new(0, 2)
+	UIListLayout.FillDirection = Enum.FillDirection.Horizontal
+	UIListLayout.SortOrder = Enum.SortOrder.LayoutOrder
+
+	local Search = Instance.new("Frame")
+	Search.BorderColor3 = Color3.fromRGB(0, 0, 0)
+	Search.Parent = MainFrame
+	Search.AnchorPoint = Vector2.new(1, 0)
+	Search.Size = UDim2.new(0.25, 0, 0, 30)
+	Search.Name = "Search"
+	Search.Position = UDim2.new(0.985, 0, 0, 40)
+	Search.BorderSizePixel = 0
+	Search.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+
+	local UIStroke = Instance.new("UIStroke")
+	UIStroke.Parent = Search
+	UIStroke.Transparency = 0.75
+
+	local TextBox = Instance.new("TextBox")
+	TextBox.Parent = Search
+	TextBox.PlaceholderText = "Search in ..."
+	TextBox.TextSize = 16
+	TextBox.Size = UDim2.fromScale(1, 1)
+	TextBox.TextColor3 = Color3.fromRGB(0, 0, 0)
+	TextBox.BorderColor3 = Color3.fromRGB(0, 0, 0)
+	TextBox.Text = ""
+	TextBox.BorderSizePixel = 0
+	TextBox.Font = Enum.Font.SourceSans
+	TextBox.BackgroundTransparency = 1
+	TextBox.TextXAlignment = Enum.TextXAlignment.Left
+	TextBox.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+
+	local UIPadding = Instance.new("UIPadding")
+	UIPadding.PaddingLeft = UDim.new(0.05, 0)
+	UIPadding.Parent = TextBox
+
+	local Files = Instance.new("Frame")
+	Files.BorderColor3 = Color3.fromRGB(0, 0, 0)
+	Files.Parent = MainFrame
+	Files.Size = UDim2.new(1, 0, 1, -155)
+	Files.AnchorPoint = Vector2.new(0.5, 1)
+	Files.BorderSizePixel = 0
+	Files.Name = "Files"
+	Files.Position = UDim2.new(0.5, 0, 1, -50)
+	Files.ZIndex = 10
+	Files.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+
+	local UIStroke = Instance.new("UIStroke")
+	UIStroke.Parent = Files
+
+	local ScrollingFrame = Instance.new("ScrollingFrame")
+	ScrollingFrame.ScrollBarImageColor3 = Color3.fromRGB(0, 0, 0)
+	ScrollingFrame.Active = true
+	ScrollingFrame.AutomaticCanvasSize = Enum.AutomaticSize.XY
+	ScrollingFrame.Position = UDim2.fromOffset(5, 0)
+	ScrollingFrame.ScrollBarThickness = 2
+	ScrollingFrame.Parent = Files
+	ScrollingFrame.Size = UDim2.new(1, -10, 1.1, -50)
+	ScrollingFrame.VerticalScrollBarInset = Enum.ScrollBarInset.Always
+	ScrollingFrame.BorderSizePixel = 0
+	ScrollingFrame.BorderColor3 = Color3.fromRGB(0, 0, 0)
+	ScrollingFrame.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+	ScrollingFrame.HorizontalScrollBarInset = Enum.ScrollBarInset.Always
+	ScrollingFrame.CanvasSize = UDim2.fromOffset(0, 0)
+
+	local UIListLayout = Instance.new("UIListLayout")
+	UIListLayout.Parent = ScrollingFrame
+	UIListLayout.SortOrder = Enum.SortOrder.LayoutOrder
+
+	local Sort = Instance.new("Frame")
+	Sort.LayoutOrder = -999
+	Sort.ClipsDescendants = true
+	Sort.BorderColor3 = Color3.fromRGB(0, 0, 0)
+	Sort.Parent = ScrollingFrame
+	Sort.Name = "Sort"
+	Sort.AutomaticSize = Enum.AutomaticSize.X
+	Sort.Size = UDim2.new(1, 0, 0, 26)
+	Sort.BackgroundTransparency = 1
+	Sort.BorderSizePixel = 0
+	Sort.ZIndex = 0
+	Sort.BackgroundColor3 = Color3.fromRGB(225, 225, 225)
+
+	local UIListLayout = Instance.new("UIListLayout")
+	UIListLayout.Parent = Sort
+	UIListLayout.Padding = UDim.new(0, 1)
+	UIListLayout.SortOrder = Enum.SortOrder.LayoutOrder
+	UIListLayout.FillDirection = Enum.FillDirection.Horizontal
+
+	local NameSort = Instance.new("TextButton")
+	NameSort.Parent = Sort
+	NameSort.TextSize = 14
+	NameSort.Size = UDim2.new(0, 350, 1, 0)
+	NameSort.TextColor3 = Color3.fromRGB(0, 0, 0)
+	NameSort.BorderColor3 = Color3.fromRGB(0, 0, 0)
+	NameSort.Text = "Name"
+	NameSort.Name = "NameSort"
+	NameSort.Font = Enum.Font.SourceSans
+	NameSort.BackgroundTransparency = 1
+	NameSort.TextXAlignment = Enum.TextXAlignment.Left
+	NameSort.BorderSizePixel = 0
+	NameSort.BackgroundColor3 = Color3.fromRGB(94, 225, 255)
+
+	local UIPadding = Instance.new("UIPadding")
+	UIPadding.Parent = NameSort
+	UIPadding.PaddingRight = UDim.new(0, 5)
+	UIPadding.PaddingLeft = UDim.new(0, 5)
+
+	local Up = Instance.new("TextLabel")
+	Up.Visible = false
+	Up.FontFace = Font.new("rbxassetid://12187360881",Enum.FontWeight.Regular,Enum.FontStyle.Normal)
+	Up.Parent = NameSort
+	Up.AnchorPoint = Vector2.new(0.5, 0)
+	Up.ZIndex = 10
+	Up.TextSize = 20
+	Up.Size = UDim2.fromOffset(10, 10)
+	Up.Name = "Up"
+	Up.TextColor3 = Color3.fromRGB(0, 0, 0)
+	Up.BorderColor3 = Color3.fromRGB(0, 0, 0)
+	Up.Text = ">"
+	Up.Rotation = -90
+	Up.BackgroundTransparency = 1
+	Up.Position = UDim2.fromScale(0.5, 0)
+	Up.BorderSizePixel = 0
+	Up.Visible = false
+	Up.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+
+	local Down = Instance.new("TextLabel")
+	Down.FontFace = Font.new("rbxassetid://12187360881",Enum.FontWeight.Regular,Enum.FontStyle.Normal)
+	Down.Parent = NameSort
+	Down.AnchorPoint = Vector2.new(0.5, 1)
+	Down.ZIndex = 10
+	Down.TextSize = 20
+	Down.Size = UDim2.fromOffset(10, 10)
+	Down.Name = "Down"
+	Down.TextColor3 = Color3.fromRGB(0, 0, 0)
+	Down.BorderColor3 = Color3.fromRGB(0, 0, 0)
+	Down.Text = ">"
+	Down.Rotation = 90
+	Down.BackgroundTransparency = 1
+	Down.Position = UDim2.fromScale(0.5, 1)
+	Down.BorderSizePixel = 0
+	Down.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+
+	local UIStroke = Instance.new("UIStroke")
+	UIStroke.Color = Color3.fromRGB(200, 200, 200)
+	UIStroke.Parent = NameSort
+	UIStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+
+	local TypeSort = Instance.new("TextButton")
+	TypeSort.Parent = Sort
+	TypeSort.TextSize = 14
+	TypeSort.Size = UDim2.new(0, 250, 1, 0)
+	TypeSort.TextColor3 = Color3.fromRGB(0, 0, 0)
+	TypeSort.BorderColor3 = Color3.fromRGB(0, 0, 0)
+	TypeSort.Text = "Type"
+	TypeSort.Name = "TypeSort"
+	TypeSort.Font = Enum.Font.SourceSans
+	TypeSort.BackgroundTransparency = 1
+	TypeSort.TextXAlignment = Enum.TextXAlignment.Left
+	TypeSort.BorderSizePixel = 0
+	TypeSort.BackgroundColor3 = Color3.fromRGB(94, 225, 255)
+
+	local UIPadding = Instance.new("UIPadding")
+	UIPadding.Parent = TypeSort
+	UIPadding.PaddingRight = UDim.new(0, 5)
+	UIPadding.PaddingLeft = UDim.new(0, 5)
+
+	local Down = Instance.new("TextLabel")
+	Down.FontFace = Font.new("rbxassetid://12187360881",Enum.FontWeight.Regular,Enum.FontStyle.Normal)
+	Down.Parent = TypeSort
+	Down.AnchorPoint = Vector2.new(0.5, 1)
+	Down.ZIndex = 10
+	Down.TextSize = 20
+	Down.Size = UDim2.fromOffset(10, 10)
+	Down.Name = "Down"
+	Down.TextColor3 = Color3.fromRGB(0, 0, 0)
+	Down.BorderColor3 = Color3.fromRGB(0, 0, 0)
+	Down.Text = ">"
+	Down.Rotation = 90
+	Down.BackgroundTransparency = 1
+	Down.Position = UDim2.fromScale(0.5, 1)
+	Down.BorderSizePixel = 0
+	Down.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+
+	local Up = Instance.new("TextLabel")
+	Up.Visible = false
+	Up.FontFace = Font.new("rbxassetid://12187360881",Enum.FontWeight.Regular,Enum.FontStyle.Normal)
+	Up.Parent = TypeSort
+	Up.AnchorPoint = Vector2.new(0.5, 0)
+	Up.ZIndex = 10
+	Up.TextSize = 20
+	Up.Size = UDim2.fromOffset(10, 10)
+	Up.Name = "Up"
+	Up.TextColor3 = Color3.fromRGB(0, 0, 0)
+	Up.BorderColor3 = Color3.fromRGB(0, 0, 0)
+	Up.Text = ">"
+	Up.Rotation = -90
+	Up.BackgroundTransparency = 1
+	Up.Position = UDim2.fromScale(0.5, 0)
+	Up.BorderSizePixel = 0
+	Up.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+
+	local UIStroke = Instance.new("UIStroke")
+	UIStroke.Color = Color3.fromRGB(200, 200, 200)
+	UIStroke.Parent = TypeSort
+	UIStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+
+	local Buttons = Instance.new("Frame")
+	Buttons.BorderColor3 = Color3.fromRGB(0, 0, 0)
+	Buttons.Parent = MainFrame
+	Buttons.Position = UDim2.fromOffset(0, 80)
+	Buttons.Name = "Buttons"
+	Buttons.Size = UDim2.new(1, 0, 0, 25)
+	Buttons.BorderSizePixel = 0
+	Buttons.BackgroundColor3 = Color3.fromRGB(240, 242, 245)
+
+	local UIListLayout = Instance.new("UIListLayout")
+	UIListLayout.Parent = Buttons
+	UIListLayout.FillDirection = Enum.FillDirection.Horizontal
+	UIListLayout.SortOrder = Enum.SortOrder.LayoutOrder
+
+	local NewFolder = Instance.new("TextButton")
+	NewFolder.Parent = Buttons
+	NewFolder.TextSize = 14
+	NewFolder.Size = UDim2.fromScale(0, 1)
+	NewFolder.TextColor3 = Color3.fromRGB(0, 0, 99)
+	NewFolder.BorderColor3 = Color3.fromRGB(0, 0, 0)
+	NewFolder.Text = "Create New Folder"
+	NewFolder.Name = "NewFolder"
+	NewFolder.Font = Enum.Font.SourceSans
+	NewFolder.BackgroundTransparency = 1
+	NewFolder.BorderSizePixel = 0
+	NewFolder.BackgroundColor3 = Color3.fromRGB(94, 225, 255)
+	NewFolder.AutomaticSize = Enum.AutomaticSize.X
+
+	local UIPadding = Instance.new("UIPadding")
+	UIPadding.Parent = NewFolder
+	UIPadding.PaddingRight = UDim.new(0, 10)
+	UIPadding.PaddingLeft = UDim.new(0, 10)
+
+	local Hoving = Instance.new("UIStroke")
+	Hoving.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+	Hoving.Name = "Hoving"
+	Hoving.Color = Color3.fromRGB(0, 0, 255)
+	Hoving.Parent = NewFolder
+	Hoving.Enabled = false
+
+	local UIPadding = Instance.new("UIPadding")
+	UIPadding.Parent = Buttons
+	UIPadding.PaddingRight = UDim.new(0, 5)
+	UIPadding.PaddingLeft = UDim.new(0, 5)
+
+	local Refresh = Instance.new("TextButton")
+	Refresh.LayoutOrder = -1
+	Refresh.Parent = Buttons
+	Refresh.TextSize = 14
+	Refresh.Size = UDim2.fromScale(0, 1)
+	Refresh.TextColor3 = Color3.fromRGB(0, 0, 99)
+	Refresh.BorderColor3 = Color3.fromRGB(0, 0, 0)
+	Refresh.Text = "Refresh"
+	Refresh.Name = "Refresh"
+	Refresh.Font = Enum.Font.SourceSans
+	Refresh.BackgroundTransparency = 1
+	Refresh.BorderSizePixel = 0
+	Refresh.BackgroundColor3 = Color3.fromRGB(94, 225, 255)
+	Refresh.AutomaticSize = Enum.AutomaticSize.X
+
+	local UIPadding = Instance.new("UIPadding")
+	UIPadding.Parent = Refresh
+	UIPadding.PaddingRight = UDim.new(0, 10)
+	UIPadding.PaddingLeft = UDim.new(0, 10)
+
+	local Hoving = Instance.new("UIStroke")
+	Hoving.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+	Hoving.Name = "Hoving"
+	Hoving.Color = Color3.fromRGB(0, 0, 255)
+	Hoving.Parent = Refresh
+	Hoving.Enabled = false
+
+	local Selected = Instance.new("Frame")
+	Selected.BorderColor3 = Color3.fromRGB(0, 0, 0)
+	Selected.Parent = MainFrame
+	Selected.Size = UDim2.new(1, 0, 0, 75)
+	Selected.AnchorPoint = Vector2.new(1, 1)
+	Selected.BorderSizePixel = 0
+	Selected.Name = "Selected"
+	Selected.Position = UDim2.fromScale(1, 1)
+	Selected.ZIndex = 999
+	Selected.BackgroundColor3 = Color3.fromRGB(245, 247, 250)
+
+	local TextLabel = Instance.new("TextLabel")
+	TextLabel.Parent = Selected
+	TextLabel.TextSize = 16
+	TextLabel.Size = UDim2.fromOffset(100, 20)
+	TextLabel.TextColor3 = Color3.fromRGB(0, 0, 0)
+	TextLabel.BorderColor3 = Color3.fromRGB(0, 0, 0)
+	TextLabel.Text = "File Name(N):"
+	TextLabel.Font = Enum.Font.SourceSans
+	TextLabel.BackgroundTransparency = 1
+	TextLabel.Position = UDim2.fromOffset(0, 10)
+	TextLabel.BorderSizePixel = 0
+	TextLabel.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+
+	local FileName = Instance.new("TextBox")
+	FileName.Parent = Selected
+	FileName.TextTruncate = Enum.TextTruncate.AtEnd
+	FileName.TextSize = 16
+	FileName.Size = UDim2.new(1, -250, 0, 20)
+	FileName.TextColor3 = Color3.fromRGB(0, 0, 0)
+	FileName.BorderColor3 = Color3.fromRGB(0, 0, 0)
+	FileName.Text = "Main.lua"
+	FileName.Position = UDim2.fromOffset(100, 10)
+	FileName.BorderSizePixel = 0
+	FileName.Font = Enum.Font.SourceSans
+	FileName.Name = "FileName"
+	FileName.TextXAlignment = Enum.TextXAlignment.Left
+	FileName.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+	FileName.CursorPosition = -1
+
+	local UIStroke = Instance.new("UIStroke")
+	UIStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+	UIStroke.Parent = FileName
+
+	local UIPadding = Instance.new("UIPadding")
+	UIPadding.Parent = FileName
+	UIPadding.PaddingRight = UDim.new(0, 5)
+	UIPadding.PaddingLeft = UDim.new(0, 5)
+
+	local FileType = Instance.new("TextLabel")
+	FileType.Parent = Selected
+	FileType.AnchorPoint = Vector2.new(1, 0)
+	FileType.TextTruncate = Enum.TextTruncate.AtEnd
+	FileType.TextSize = 14
+	FileType.Size = UDim2.fromOffset(130, 20)
+	FileType.TextColor3 = Color3.fromRGB(0, 0, 0)
+	FileType.BorderColor3 = Color3.fromRGB(0, 0, 0)
+	FileType.Text = "*.lua;"
+	FileType.BorderSizePixel = 0
+	FileType.Position = UDim2.new(1, -10, 0, 10)
+	FileType.Font = Enum.Font.SourceSans
+	FileType.Name = "FileType"
+	FileType.TextXAlignment = Enum.TextXAlignment.Left
+	FileType.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+
+	local UIStroke = Instance.new("UIStroke")
+	UIStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+	UIStroke.Transparency = 0.75
+	UIStroke.Parent = FileType
+
+	local UIPadding = Instance.new("UIPadding")
+	UIPadding.Parent = FileType
+	UIPadding.PaddingRight = UDim.new(0, 5)
+	UIPadding.PaddingLeft = UDim.new(0, 5)
+
+	local Open = Instance.new("TextButton")
+	Open.Parent = Selected
+	Open.AnchorPoint = Vector2.new(1, 0)
+	Open.TextSize = 14
+	Open.Size = UDim2.fromOffset(60, 22)
+	Open.TextColor3 = Color3.fromRGB(0, 0, 0)
+	Open.BorderColor3 = Color3.fromRGB(0, 0, 0)
+	Open.Text = "Open"
+	Open.Name = "Open"
+	Open.Font = Enum.Font.SourceSans
+	Open.BackgroundTransparency = 1
+	Open.Position = UDim2.fromScale(0.8666390180587769, 0.5400000214576721)
+	Open.BorderSizePixel = 0
+	Open.BackgroundColor3 = Color3.fromRGB(94, 225, 255)
+
+	local UIStroke = Instance.new("UIStroke")
+	UIStroke.Color = Color3.fromRGB(0, 0, 255)
+	UIStroke.Transparency = 0.5
+	UIStroke.Parent = Open
+	UIStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+
+	local Cancel = Instance.new("TextButton")
+	Cancel.Parent = Selected
+	Cancel.AnchorPoint = Vector2.new(1, 0)
+	Cancel.TextSize = 14
+	Cancel.Size = UDim2.fromOffset(60, 22)
+	Cancel.TextColor3 = Color3.fromRGB(0, 0, 0)
+	Cancel.BorderColor3 = Color3.fromRGB(0, 0, 0)
+	Cancel.Text = "Cancel"
+	Cancel.Name = "Cancel"
+	Cancel.Font = Enum.Font.SourceSans
+	Cancel.BackgroundTransparency = 1
+	Cancel.Position = UDim2.fromScale(0.983111560344696, 0.5400000214576721)
+	Cancel.BorderSizePixel = 0
+	Cancel.BackgroundColor3 = Color3.fromRGB(94, 225, 255)
+
+	local Normal = Instance.new("UIStroke")
+	Normal.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+	Normal.Transparency = 0.75
+	Normal.Name = "Normal"
+	Normal.Parent = Cancel
+
+	local Hoving = Instance.new("UIStroke")
+	Hoving.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+	Hoving.Transparency = 0.5
+	Hoving.Name = "Hoving"
+	Hoving.Color = Color3.fromRGB(0, 0, 255)
+	Hoving.Parent = Cancel
+	Hoving.Enabled = false
+
+	local UISizeConstraint = Instance.new("UISizeConstraint")
+	UISizeConstraint.MinSize = Vector2.new(0, 250)
+	UISizeConstraint.Parent = MainFrame
+
+	local TextButton = Instance.new("TextButton")
+	TextButton.Parent = FileExplorer
+	TextButton.AnchorPoint = Vector2.new(0.5, 0.5)
+	TextButton.ZIndex = -1
+	TextButton.TextSize = 14
+	TextButton.Size = UDim2.fromScale(3, 3)
+	TextButton.Modal = true
+	TextButton.BorderColor3 = Color3.fromRGB(0, 0, 0)
+	TextButton.Text = ""
+	TextButton.Transparency = 1
+	TextButton.BorderSizePixel = 0
+	TextButton.Font = Enum.Font.SourceSans
+	TextButton.BackgroundTransparency = 1
+	TextButton.Position = UDim2.fromScale(0.5, 0.5)
+	TextButton.TextColor3 = Color3.fromRGB(0, 0, 0)
+	TextButton.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+
+
+	FileExplorerUi = FileExplorer
+	FileExplorerUi.Parent = DexEnv.genv.gethui()
+	FileExplorerUi.Enabled = false
+end
+
+local FileEntryFrame
+do
+
+	local FileEntry = Instance.new("Frame")
+	FileEntry.BackgroundTransparency = 1
+	FileEntry.Name = "FileEntry"
+	FileEntry.BorderColor3 = Color3.fromRGB(0, 0, 0)
+	FileEntry.Size = UDim2.fromOffset(600, 20)
+	FileEntry.BorderSizePixel = 0
+	FileEntry.BackgroundColor3 = Color3.fromRGB(94, 225, 255)
+	
+	local UiStroke = Instance.new("UIStroke")
+	UiStroke.Color = Color3.fromRGB(0, 0, 0)
+	UiStroke.Parent = FileEntry
+	UiStroke.Enabled = false
+	UiStroke.Name = "Selected"
+	UiStroke.Thickness = 1
+
+	local Icon = Instance.new("ImageLabel")
+	Icon.BorderColor3 = Color3.fromRGB(0, 0, 0)
+	Icon.Parent = FileEntry
+	Icon.Name = "Icon"
+	Icon.Image = "rbxassetid://102278811949320"
+	Icon.BackgroundTransparency = 1
+	Icon.Position = UDim2.fromOffset(10, 1)
+	Icon.Size = UDim2.fromOffset(18, 18)
+	Icon.ImageRectSize = Vector2.new(64, 64)
+	Icon.BorderSizePixel = 0
+	Icon.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+
+	local FileName = Instance.new("TextLabel")
+	FileName.TextColor3 = Color3.fromRGB(50, 50, 50)
+	FileName.BorderColor3 = Color3.fromRGB(0, 0, 0)
+	FileName.Text = "file.mp4"
+	FileName.Parent = FileEntry
+	FileName.Name = "FileName"
+	FileName.Size = UDim2.new(0, 300, 1, 0)
+	FileName.Font = Enum.Font.SourceSans
+	FileName.BackgroundTransparency = 1
+	FileName.TextXAlignment = Enum.TextXAlignment.Left
+	FileName.Position = UDim2.fromOffset(35, 0)
+	FileName.BorderSizePixel = 0
+	FileName.TextSize = 18
+	FileName.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+
+	local FileType = Instance.new("TextLabel")
+	FileType.TextColor3 = Color3.fromRGB(50, 50, 50)
+	FileType.BorderColor3 = Color3.fromRGB(0, 0, 0)
+	FileType.Text = "MP4 File"
+	FileType.Parent = FileEntry
+	FileType.Name = "FileType"
+	FileType.Size = UDim2.new(0, 200, 1, 0)
+	FileType.Font = Enum.Font.SourceSans
+	FileType.BackgroundTransparency = 1
+	FileType.TextXAlignment = Enum.TextXAlignment.Left
+	FileType.Position = UDim2.fromOffset(355, 0)
+	FileType.BorderSizePixel = 0
+	FileType.TextSize = 14
+	FileType.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+
+	FileEntryFrame = FileEntry
+end
+
+local FilePathEntryFrame
+
+do
+
+	local FilePathEntry = Instance.new("Frame")
+	FilePathEntry.Name = "FilePathEntry"
+	FilePathEntry.Size = UDim2.fromScale(0, 1)
+	FilePathEntry.BorderColor3 = Color3.fromRGB(0, 0, 0)
+	FilePathEntry.BorderSizePixel = 0
+	FilePathEntry.AutomaticSize = Enum.AutomaticSize.X
+	FilePathEntry.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+
+	local EntryName = Instance.new("TextButton")
+	EntryName.TextColor3 = Color3.fromRGB(0, 0, 0)
+	EntryName.BorderColor3 = Color3.fromRGB(0, 0, 0)
+	EntryName.Text = "Workspace"
+	EntryName.Parent = FilePathEntry
+	EntryName.AutoButtonColor = false
+	EntryName.Name = "EntryName"
+	EntryName.Font = Enum.Font.SourceSans
+	EntryName.BackgroundTransparency = 1
+	EntryName.Size = UDim2.fromScale(0, 1)
+	EntryName.BorderSizePixel = 0
+	EntryName.AutomaticSize = Enum.AutomaticSize.X
+	EntryName.TextSize = 14
+	EntryName.BackgroundColor3 = Color3.fromRGB(94, 225, 255)
+
+	local TextButton = Instance.new("TextButton")
+	TextButton.TextColor3 = Color3.fromRGB(0, 0, 0)
+	TextButton.BorderColor3 = Color3.fromRGB(0, 0, 0)
+	TextButton.Text = ">"
+	TextButton.Parent = EntryName
+	TextButton.AnchorPoint = Vector2.new(1, 1)
+	TextButton.Font = Enum.Font.SourceSans
+	TextButton.BackgroundTransparency = 1
+	TextButton.Position = UDim2.new(1, 15, 1, 0)
+	TextButton.Size = UDim2.new(0, 10, 1, 0)
+	TextButton.BorderSizePixel = 0
+	TextButton.TextSize = 14
+	TextButton.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+
+	local UIStroke = Instance.new("UIStroke")
+	UIStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+	UIStroke.Parent = TextButton
+	UIStroke.Name = "Hoving"
+	UIStroke.Enabled = false
+
+	local UIPadding = Instance.new("UIPadding")
+	UIPadding.Parent = EntryName
+	UIPadding.PaddingRight = UDim.new(0, 15)
+	UIPadding.PaddingLeft = UDim.new(0, 5)
+
+	local UIStroke = Instance.new("UIStroke")
+	UIStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+	UIStroke.Parent = EntryName
+	UIStroke.Name = "Hoving"
+	UIStroke.Enabled = false
+
+	FilePathEntryFrame = FilePathEntry
+end
+
+Modules.FileExplorer = {
+	ButtonEffects = {},
+	CurrentPath = nil :: string,
+	Selected = {} :: {File},
+	MultipleSelect = false,
+	Uis = {},
+	FileTypes = {}:: {string},
+}
+
+type File = {
+	Name: string,
+	Type: string,
+	Path: string,
+}
+
+local FileExplorer = Modules.FileExplorer
+
+function FileExplorer:Init()
+	local FilesScrollingFrame = FileExplorerUi.MainFrame.Files.ScrollingFrame
+	local FileSelectedFrame = FileExplorerUi.MainFrame.Selected
+	local FilePathFrames = FileExplorerUi.MainFrame.Path
+
+	local function ButtonEffect(Button:TextButton)
+		local NewButtonEffect = {}
+
+		function NewButtonEffect.Hover()
+			if Button:GetAttribute("Selected") then return end
+			Button.BackgroundTransparency = .75
+			local Stroke = Button:FindFirstChild("Hoving")
+			if Stroke and Stroke:IsA("UIStroke") then
+				Stroke.Enabled = true
+			end
+
+			local NormalStroke = Button:FindFirstChild("Normal")
+			if NormalStroke and NormalStroke:IsA("UIStroke") then
+				NormalStroke.Enabled = false
+			end
+		end
+
+		function NewButtonEffect.Leave()
+			if Button:GetAttribute("Selected") then return end
+			Button.BackgroundTransparency = 1
+			local Stroke = Button:FindFirstChild("Hoving")
+			if Stroke and Stroke:IsA("UIStroke") then
+				Stroke.Enabled = false
+			end
+
+			local NormalStroke = Button:FindFirstChild("Normal")
+			if NormalStroke and NormalStroke:IsA("UIStroke") then
+				NormalStroke.Enabled = true
+			end
+		end
+
+		local a = Button.MouseEnter:Connect(NewButtonEffect.Hover)
+		local b = Button.MouseLeave:Connect(NewButtonEffect.Leave)
+
+		Button.Destroying:Once(function()
+			Modules.FileExplorer.ButtonEffects[Button] = nil
+			a:Disconnect()
+			b:Disconnect()
+		end)
+
+		Modules.FileExplorer.ButtonEffects[Button] = NewButtonEffect
+	end
+	
+	function FileExplorer:FileType(FilePath)
+		if DexEnv.genv.isfolder(FilePath) then
+			return "folder"
+		end
+		
+		local FileName = FileExplorer:FileName(FilePath)
+		return (string.match(FileName, "%.(%w+)$") or ""):lower()
+	end
+	
+	function FileExplorer:FileName(Path)
+		return string.match(Path, "([^/\\]+)$") or Path
+	end
+	
+	local function UpdateSelected()
+		for i,v in pairs(FileExplorer.Uis) do
+			v.BackgroundTransparency = 1
+			v.Selected.Enabled = false
+			v:SetAttribute("Selected", nil)
+		end
+		
+		if GetLength(FileExplorer.Selected) > 1 then
+			local str = ""
+			for i,v in pairs(FileExplorer.Selected) do
+				str = str..v.Name..", "
+				
+				local ui = FileExplorer.Uis[v.Path]
+				if ui then
+					ui.BackgroundTransparency = .5
+					ui.Selected.Enabled = true
+					ui:SetAttribute("Selected", true)
+				end
+			end
+			str = str:sub(1, -2)
+			FileSelectedFrame.FileName.Text = str
+		elseif GetLength(FileExplorer.Selected) == 1 then
+			local _,File:File = next(FileExplorer.Selected)
+			
+			FileSelectedFrame.FileName.Text = File.Name
+			
+			local ui = FileExplorer.Uis[File.Path]
+			if ui then
+				ui.BackgroundTransparency = .5
+				ui.Selected.Enabled = true
+				ui:SetAttribute("Selected", true)
+			end
+		else
+			FileSelectedFrame.FileName.Text = ""
+		end
+		
+		if #FileExplorer.FileTypes >= 1 then
+			local str = ""
+			for i,v in pairs(FileExplorer.FileTypes) do
+				str = str.."*."..v..";"
+			end
+
+			FileSelectedFrame.FileType.Text = str
+		else
+			FileSelectedFrame.FileType.Text = "*.*(All Files)"
+		end
+	end
+	
+	function FileExplorer:SelectFile(FilePath)
+		if FileExplorer.MultipleSelect then
+			if FileExplorer.Selected[FilePath] then
+				FileExplorer.Selected[FilePath] = nil
+			end
+		elseif not FileExplorer.Selected[FilePath] then
+			FileExplorer.Selected = {}
+		end
+		
+		local Name = FileExplorer:FileName(FilePath)
+		local Type = FileExplorer:FileType(FilePath)
+		
+		FileExplorer.Selected[FilePath] = {
+			Name = Name,
+			Path = FilePath,
+			Type = Type,
+		}::File
+		
+		UpdateSelected()
+	end
+	
+	function FileExplorer:NewFile(FilePath)
+		local FileName = FileExplorer:FileName(FilePath)
+		local FileType = FileExplorer:FileType(FilePath)
+		
+		local NewFileEntry = FileEntryFrame:Clone()
+		NewFileEntry.FileName.Text = FileName
+		if FileType == "" then
+			NewFileEntry.FileType.Text = "File"
+		elseif FileType == "folder" then
+			NewFileEntry.FileType.Text = "Folder"
+		else
+			NewFileEntry.FileType.Text = FileType:upper().." File"
+		end
+		
+		Modules.IconMap:GetFileMap(NewFileEntry.Icon, FileType)
+		NewFileEntry.Parent = FilesScrollingFrame
+		
+		ButtonEffect(NewFileEntry)
+		
+		local LastClick = tick()
+		
+		local a;a = NewFileEntry.InputBegan:Connect(function(Input)
+			if Input.UserInputType == Enum.UserInputType.MouseButton1 or Input.UserInputType == Enum.UserInputType.Touch then
+				if tick() - LastClick < .5 and not FileExplorer.MultipleSelect then
+					FileExplorer:Done()
+					return
+				end
+				
+				LastClick = tick()
+				FileExplorer:SelectFile(FilePath)
+			end
+		end)
+		
+		NewFileEntry.Destroying:Once(function()
+			FileExplorer.Uis[FilePath] = nil
+			a:Disconnect()
+		end)
+		
+		FileExplorer.Uis[FilePath] = NewFileEntry
+	end
+	
+	local WaitEvent = Instance.new("BindableEvent")
+	local WaitEvent2 = Instance.new("BindableEvent")
+	
+	function FileExplorer:Open()
+		FileExplorerUi.Enabled = true
+
+		FileSelectedFrame.FileName.Text = ""
+		FileSelectedFrame.FileType.Text = ""
+
+		for i,v in pairs(FileExplorer.ButtonEffects) do
+			v.Leave()
+		end
+		
+		FileExplorer:JumpTo("")
+		
+		local a;a = FileSelectedFrame.Open.MouseButton1Click:Connect(function()
+			FileExplorer:Done()
+		end)
+		
+		WaitEvent.Event:Wait()
+
+		local tbl = {}
+		for i,v in pairs(FileExplorer.Selected) do
+			if DexEnv.genv.isfile(i) then
+				table.insert(tbl, i)
+			end
+		end
+		
+		WaitEvent2:Fire()
+		
+		return tbl
+	end
+	
+	function FileExplorer:Close()
+		WaitEvent:Fire()
+		
+		FileExplorerUi.Enabled = false
+		
+		FileExplorer.Selected = {}
+		
+		FileExplorer.FileTypes = {}
+	end
+	
+	function FileExplorer:Done()
+		if GetLength(FileExplorer.Selected) == 1 then
+			local _,File:File = next(FileExplorer.Selected)
+			if DexEnv.genv.isfolder(File.Path) then
+				FileExplorer:JumpTo(File.Path)
+				return
+			end
+		elseif GetLength(FileExplorer.Selected) > 1 then
+			for i,v in pairs(FileExplorer.Selected) do
+				if DexEnv.genv.isfolder(v.Path) then
+					return
+				end
+			end
+		end
+
+		WaitEvent:Fire()
+		WaitEvent2.Event:Wait()
+		
+		FileExplorer:Close()
+	end
+	
+	function FileExplorer:File(...)
+		local Types = {...}
+		FileExplorer.FileTypes = Types
+		
+		return FileExplorer:Open()
+	end
+	
+	function FileExplorer:JumpTo(Path)
+		warn("Jump to "..Path)
+		for i,v in ipairs(FilePathFrames:GetChildren()) do
+			if v.Name ~= "Default" and v:IsA("Frame") then
+				v:Destroy()
+			end
+		end
+
+		for i,v in ipairs(FilesScrollingFrame:GetChildren()) do
+			if v.Name ~= "Sort" and v:IsA("Frame") then
+				v:Destroy()
+			end
+		end
+		
+		if DexEnv.genv.isfolder(Path) then
+			local Files : {string} = DexEnv.genv.listfiles(Path)
+			
+			for _,FilePath in pairs(Files) do
+				FileExplorer:NewFile(FilePath)
+			end
+			
+			local PathTable = string.split(Path, "/")
+			
+			for i = 1,#PathTable do
+				local FolderName = PathTable[i]
+				if FolderName == "" then continue end
+				local NewPathFrame = FilePathEntryFrame:Clone()
+				NewPathFrame.Parent = FilePathFrames
+				NewPathFrame.EntryName.Text = FolderName
+				
+				local CurrentPath = ""
+				
+				for l = 1,i do
+					CurrentPath = CurrentPath..PathTable[l].."/"
+				end
+				
+				CurrentPath = CurrentPath:sub(1,#CurrentPath-1)
+				
+				local a;a = NewPathFrame.EntryName.MouseButton1Click:Connect(function()
+					FileExplorer:JumpTo(CurrentPath)
+				end)
+				
+				NewPathFrame.Destroying:Once(function()
+					a:Disconnect()
+				end)
+				
+				ButtonEffect(NewPathFrame.EntryName)
+				ButtonEffect(NewPathFrame.EntryName.TextButton)
+			end
+		end
+	end
+	
+	local DefaultPath = FilePathEntryFrame:Clone()
+	DefaultPath.Parent = FilePathFrames
+	DefaultPath.EntryName.Text = "Executor"
+	DefaultPath.Name = "Default"
+	
+	local DefaultPath = FilePathEntryFrame:Clone()
+	DefaultPath.Parent = FilePathFrames
+	DefaultPath.EntryName.Text = "Workspace(C:)"
+	DefaultPath.Name = "Default"
+	DefaultPath.EntryName.MouseButton1Click:Connect(function()
+		FileExplorer:JumpTo("")
+	end)
+	
+	ButtonEffect(DefaultPath.EntryName)
+	ButtonEffect(DefaultPath.EntryName.TextButton)
+	ButtonEffect(FilesScrollingFrame.Sort.NameSort)
+	ButtonEffect(FilesScrollingFrame.Sort.TypeSort)
+	ButtonEffect(FileSelectedFrame.Open)
+	ButtonEffect(FileSelectedFrame.Cancel)
+	ButtonEffect(FileExplorerUi.MainFrame.Buttons.NewFolder)
+	ButtonEffect(FileExplorerUi.MainFrame.Buttons.Refresh)
+
+
+	FileSelectedFrame.Cancel.MouseButton1Click:Connect(function()
+		FileExplorer:Close()
+	end)
+	FileExplorerUi.MainFrame.Topbar.Close.MouseButton1Click:Connect(function()
+		FileExplorer:Close()
+	end)
 end
 
 -- [-[ 小菜单 ]-]
@@ -915,7 +2195,6 @@ do
 	local MenuEntry = Instance.new("Frame")
 	MenuEntry.BorderColor3 = Color3.fromRGB(0, 0, 0)
 	MenuEntry.Name = "MenuEntry"
-	MenuEntry.Transparency = 1
 	MenuEntry.BackgroundTransparency = 1
 	MenuEntry.Size = UDim2.new(1, 0, 0, 20)
 	MenuEntry.BorderSizePixel = 0
@@ -977,7 +2256,6 @@ do
 	local MenuDivider = Instance.new("Frame")
 	MenuDivider.BorderColor3 = Color3.fromRGB(0, 0, 0)
 	MenuDivider.Name = "MenuDivider"
-	MenuDivider.Transparency = 1
 	MenuDivider.BackgroundTransparency = 1
 	MenuDivider.Size = UDim2.new(1, 0, 0, 10)
 	MenuDivider.BorderSizePixel = 0
@@ -1021,9 +2299,8 @@ function Menu:Init()
 			[1] = {
 				Name = "Cut",
 				CallBack = function(Selected)
-					if not Menu.Values.Copies then
-						Menu.Values.Copies = {}
-					end
+					Menu.Values.Copies = {}
+
 					for Node,_ in Selected do
 						if isService(Node.Obj.ClassName) then continue end
 						table.insert(Menu.Values.Copies,{
@@ -1038,9 +2315,7 @@ function Menu:Init()
 			[2] = {
 				Name = "Copy",
 				CallBack = function(Selected)
-					if not Menu.Values.Copies then
-						Menu.Values.Copies = {}
-					end
+					Menu.Values.Copies = {}
 					
 					for Node,_ in Selected do
 						if isService(Node.Obj.ClassName) then continue end
@@ -1222,7 +2497,7 @@ function Menu:Init()
 					[2] = {
 						Name = "Insert roblox model(rbxm)",
 						CallBack = function(Selected)
-							local File = Menu:File("rbxm","rbxmx")
+							local File = FileExplorer:File("rbxm","rbxmx")
 							
 							if File then
 								local Clone = ImportRBXM(File)
@@ -2737,6 +4012,10 @@ function Modules:Init()
 	print("注入菜单")
 	
 	Modules.Menu:Init()
+	
+	print("注入文件资源管理器")
+	
+	Modules.FileExplorer:Init()
 	
 	warn("IconMap Init")
 	Modules.IconMap:Init()
