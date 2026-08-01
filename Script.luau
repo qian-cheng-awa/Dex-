@@ -1145,7 +1145,7 @@ function Menu:Init()
 			[9] = {
 				Name = "Rename",
 				CallBack = function(Selected)
-					Selected[1]:Rename()
+					select(-2,next(Selected)):Rename()
 				end,
 				Exluded1 = function(Selected)
 					return #Selected > 1
