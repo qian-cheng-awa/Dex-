@@ -1,11 +1,11 @@
-local function a(s)          return s:gsub(" ","") end     const SR="D"         SR:lower()
+local function a(s)          return s:gsub(" ","") end      const SR="D"         SR:lower()
 const       R=game[a(       "service")](game,a("RunSer        vice")) const     SD = game
 const        I=R:IsStudio()  a("Player")                      const U =     {MainScript=a(
-[[ht           tps://raw.       githubuser                             content.co  m/qian-chen  ]]
-..[[            g-awa/Dex       -/refs/heads/Remake/Scrip              t.luau]]),RMD=a([[ht]]
-..[[            tps://raw       .githubusercontent.com/Cl              oneTrooper1019/Roblo]]
-..[[           x-Client-T       racker/rob                             lox/Reflect ionMetadat]]
-..[[           a.xml]]),}      const BX=                       "Obi_xieO"    const LW =
+[[ht           tps://raw.    githubuser                        content.co  m/qian-chen ]]
+..[[            g-awa/Dex    -/refs/heads/Remake/Scrip          t.luau]]),RMD=a([[ht]]
+..[[            tps://raw    .githubusercontent.com/Cl          oneTrooper1019/Roblo]]
+..[[           x-Client-T    racker/rob                        lox/Reflect ionMetadat]]
+..[[           a.xml]]),}    const BX=                       "Obi_xieO"    const LW =
 "Liwang"    .."IloveLw"      local function e(sr) if a      then end        local so = {}
 local p1=1 local c1=1        if a then end repeat const    YS = "114         5141919810lol"
 
