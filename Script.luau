@@ -7,6 +7,8 @@
 3. 全面优化移动端适配
 
 4. 优化框选表现，不再异常卡顿
+
+5. 修复触屏导致的重复触发框选
 ]]
 
 --[[
@@ -3343,6 +3345,7 @@ function Explorer:Init()
 
 		table.insert(Connections,NewEntry.Hit.InputBegan:Connect(function(input)
 			if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+				if MultipleSelect.Visible then return end
 				local MenuHoldTick = tick()
 
 				if not (LabelHoving and GetLength(Explorer.Selected) > 1) and not MultipleSelect.Visible then
@@ -3452,7 +3455,7 @@ function Explorer:Init()
 						return newSelected
 					end
 
-					
+
 
 					local lastUpdateTime = 0
 					local UPDATE_INTERVAL = 0.033
@@ -3468,7 +3471,7 @@ function Explorer:Init()
 
 							local canvasPos = ScrollingFrame.CanvasPosition
 							local inputPos = currentMousePos + Vector2.new(canvasPos.X, canvasPos.Y)
-							
+
 							canvasPos = ScrollingFrame.CanvasPosition
 
 							local offset = UDim2.fromOffset(
@@ -3507,6 +3510,8 @@ function Explorer:Init()
 							return
 						end
 
+						if MultipleSelect.Visible then return end
+						
 						if input.UserInputType == Enum.UserInputType.Touch then
 							if tick() - MenuHoldTick > 0.5 and 
 								(currentMousePos - Vector2.new(firstpos.X, firstpos.Y)).Magnitude < 5 then
@@ -3722,7 +3727,7 @@ function Explorer:Init()
 									SetSelect(Node1,true)
 								end
 							end
-							
+
 							ExplorerUi.ScrollingFrame:SetAttribute("AutoScrolling", nil)
 							ExplorerUi.ScrollingFrame:SetAttribute("Disibled", nil)
 						else
@@ -4113,7 +4118,7 @@ function Explorer:Init()
 			local ScrollingFrame = ExplorerUi.ScrollingFrame
 			local yTop = ScrollingFrame.AbsolutePosition.Y + 58
 			local yBottom = yTop + ScrollingFrame.AbsoluteSize.Y
-			
+
 			local mouseY = Mouse.Y
 			local canvasPos = ScrollingFrame.CanvasPosition
 
@@ -4136,7 +4141,7 @@ function Explorer:Init()
 				end
 			end
 		end
-		
+
 		local MousePosition = Vector2.new(Mouse.X,Mouse.Y)
 		local HaveHover = false
 
