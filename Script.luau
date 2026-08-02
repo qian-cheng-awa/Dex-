@@ -73,7 +73,7 @@ const function RegisterFunction(Name, Function)
 		DexEnv.genv[Name] = DexEnv.ExploitFunctions[Name]
 		return
 	end
-	
+
 	DexEnv.genv[Name] = newcclosure and newcclosure(Function) or Function
 end
 DexEnv.Ui = DexEnv.Ui or {}
@@ -107,7 +107,7 @@ RegisterFunction("cloneref",function(obj)
 		end,
 		__metatable = false,
 	})
-	
+
 	return newobj
 end)
 
@@ -157,7 +157,7 @@ if IsStudio then
 		return Path
 	end
 
-	
+
 	local function get(path)
 		local args = path:split("/")
 		local f = StudioFileTest
@@ -170,43 +170,43 @@ if IsStudio then
 		end
 		return f
 	end
-	
+
 	RegisterFunction("readfile",function(path)
 		return get(path)
 	end)
-	
+
 	RegisterFunction("writefile",function(path,data)
 		local args = path:split("/")
-		
+
 		while args[#args] == "" do
 			args[#args] = nil
 		end
-		
+
 		local arg = args[#args]
 		args[#args] = nil
-		
+
 		local f = get(path)
-		
+
 		f[arg] = data
 	end)
-	
+
 	RegisterFunction("isfile",function(path)
 		return typeof(get(path)) == "string"
 	end)
-	
+
 	RegisterFunction("isfolder",function(path)
 		return typeof(get(path)) == "table"
 	end)
-	
+
 	RegisterFunction("listfiles",function(path)
 		if not DexEnv.genv.isfolder(path) then warn("Path is not folder") end
-		
+
 		local f = get(path)
-		
+
 		local tb = {}
-		
+
 		local folderpath = GetPath(f)
-		
+
 		if folderpath == "" then
 			for i,v in pairs(f) do
 				table.insert(tb,i)
@@ -236,11 +236,11 @@ if (getrawmetatable and hookfunction) or hookmetamethod then
 		if not Metatable[method] then
 			return
 		end
-		
+
 		const OldMethod = hookfunction(Metatable[method],function(...)
 			return callback(...)
 		end)
-		
+
 		return OldMethod
 	end)
 end
@@ -250,7 +250,7 @@ RegisterFunction("gethui",function()
 		if HiddenGui then
 			return HiddenGui
 		end
-		
+
 		local Gui = Instance.new("Folder",game:GetService("CoreGui"))
 		Gui.Name = "Dex_Hidden"
 		return Gui
@@ -344,11 +344,11 @@ function HttpGet(Url,Cache)
 
 		if Cache then
 			local n = crc32(Url)
-			
+
 			if isfile(UrlFilePath..n) then
 				return readfile(UrlFilePath..n)
 			end
-			
+
 			print(Url)
 
 			Returnvalue = game:HttpGet(Url)
@@ -376,12 +376,12 @@ end
 
 function GetPath(Obj)
 	local Path = ""
-	
+
 	while Obj do
 		local Parent = Obj.Parent
-		
+
 		local NewName = EscapeForLuaString(Obj.Name)
-		
+
 		if isService(Obj.ClassName) and game:GetService(Obj.ClassName) == Obj then
 			Path = `game:GetService("{Obj.ClassName}"){Path}`
 			break
@@ -398,12 +398,12 @@ function GetPath(Obj)
 					Obj = Parent
 					continue
 				end
-				
+
 				const Target = Parent:FindFirstChild(NewName)
-				
+
 				if Target and Target ~= Obj then
 					const index = table.find(Parent:GetChildren(), Obj)
-					
+
 					local ffc = [[
 local ffc = function(parent, name, index)
 	local C = 0
@@ -424,12 +424,12 @@ end
 						if child.Name == NewName then
 							i += 1
 						end
-						
+
 						if child == Obj then
 							break
 						end
 					end
-					
+
 					Path = `{ffc}ffc({GetPath(Parent)}, "{NewName}", {i})`
 					break
 				end
@@ -445,22 +445,22 @@ end
 					
 					
 ]]
-				
+
 				Path = `{GetNil}\n\ngetNil("{NewName}", "{Obj.ClassName}"){Path}`
-				
+
 				break
 			end
-			
+
 			if string.match(Obj.Name,"^[%a_][%w_]*$") then
 				Path = `.{Obj.Name}{Path}`
 			else
 				Path = `["{NewName}"]{Path}`
 			end
 		end
-		
+
 		Obj = Parent
 	end
-	
+
 	return Path
 end
 
@@ -1153,13 +1153,13 @@ function IconMap:Init()
 	else
 		IconMap.Classes.Map = getcustomasset(UrlFilePath..crc32(Urls.IconMap[1]))
 	end
-	
+
 	if IsStudio then
 		IconMap.Files.Map = Urls.FileIconMap[3]()
 	else
 		IconMap.Files.Map = getcustomasset(UrlFilePath..crc32(Urls.FileIconMap[1]))
 	end
-	
+
 	function IconMap:Apply(Image,Id,Size,Offset)
 		Image.ImageRectOffset = Offset
 		Image.ImageRectSize = Size
@@ -1170,18 +1170,18 @@ function IconMap:Init()
 		if not Map.Icons or not Map.IconSize or not Map.Map then
 			return ""
 		end
-		
+
 		Image.Image = Map.Map
 
 		const IconSize = Vector2.new(Map.IconSize,Map.IconSize)
 
 		local X = Index % Map.Witdh
 		local Y = Index//Map.Witdh
-		
+
 		IconMap:Apply(Image,Map.Map,IconSize,Vector2.new(
 			IconSize.X * X,
 			IconSize.Y * Y
-		))
+			))
 	end
 
 	function IconMap:GetClassIcon(Image : ImageLabel , ClassName : string)
@@ -1193,14 +1193,14 @@ function IconMap:Init()
 			return ""
 		end
 	end
-	
+
 	function IconMap:GetFileMap(Image : ImageLabel , FileType : string)
 		if FileType == "folder" then
 			return IconMap:GetClassIcon(Image,"Folder")
 		end
-		
+
 		local index = (IconMap.Files.Icons[FileType] or IconMap.Files.Icons.placeholder) - 1
-		
+
 		for i,v in pairs(IconMap.Files.types) do
 			if table.find(v,FileType) then
 				index = IconMap.Files.IconsType[i] - 1
@@ -1747,7 +1747,7 @@ do
 	FileEntry.Size = UDim2.fromOffset(600, 20)
 	FileEntry.BorderSizePixel = 0
 	FileEntry.BackgroundColor3 = Color3.fromRGB(94, 225, 255)
-	
+
 	local UiStroke = Instance.new("UIStroke")
 	UiStroke.Color = Color3.fromRGB(0, 0, 0)
 	UiStroke.Parent = FileEntry
@@ -1926,32 +1926,32 @@ function FileExplorer:Init()
 
 		Modules.FileExplorer.ButtonEffects[Button] = NewButtonEffect
 	end
-	
+
 	function FileExplorer:FileType(FilePath)
 		if DexEnv.genv.isfolder(FilePath) then
 			return "folder"
 		end
-		
+
 		local FileName = FileExplorer:FileName(FilePath)
 		return (string.match(FileName, "%.(%w+)$") or ""):lower()
 	end
-	
+
 	function FileExplorer:FileName(Path)
 		return string.match(Path, "([^/\\]+)$") or Path
 	end
-	
+
 	local function UpdateSelected()
 		for i,v in pairs(FileExplorer.Uis) do
 			v.BackgroundTransparency = 1
 			v.Selected.Enabled = false
 			v:SetAttribute("Selected", nil)
 		end
-		
+
 		if GetLength(FileExplorer.Selected) > 1 then
 			local str = ""
 			for i,v in pairs(FileExplorer.Selected) do
 				str = str..v.Name..", "
-				
+
 				local ui = FileExplorer.Uis[v.Path]
 				if ui then
 					ui.BackgroundTransparency = .5
@@ -1963,9 +1963,9 @@ function FileExplorer:Init()
 			FileSelectedFrame.FileName.Text = str
 		elseif GetLength(FileExplorer.Selected) == 1 then
 			local _,File:File = next(FileExplorer.Selected)
-			
+
 			FileSelectedFrame.FileName.Text = File.Name
-			
+
 			local ui = FileExplorer.Uis[File.Path]
 			if ui then
 				ui.BackgroundTransparency = .5
@@ -1975,7 +1975,7 @@ function FileExplorer:Init()
 		else
 			FileSelectedFrame.FileName.Text = ""
 		end
-		
+
 		if #FileExplorer.FileTypes >= 1 then
 			local str = ""
 			for i,v in pairs(FileExplorer.FileTypes) do
@@ -1987,7 +1987,7 @@ function FileExplorer:Init()
 			FileSelectedFrame.FileType.Text = "*.*(All Files)"
 		end
 	end
-	
+
 	function FileExplorer:SelectFile(FilePath)
 		if FileExplorer.MultipleSelect then
 			if FileExplorer.Selected[FilePath] then
@@ -1996,23 +1996,23 @@ function FileExplorer:Init()
 		elseif not FileExplorer.Selected[FilePath] then
 			FileExplorer.Selected = {}
 		end
-		
+
 		local Name = FileExplorer:FileName(FilePath)
 		local Type = FileExplorer:FileType(FilePath)
-		
+
 		FileExplorer.Selected[FilePath] = {
 			Name = Name,
 			Path = FilePath,
 			Type = Type,
 		}::File
-		
+
 		UpdateSelected()
 	end
-	
+
 	function FileExplorer:NewFile(FilePath)
 		local FileName = FileExplorer:FileName(FilePath)
 		local FileType = FileExplorer:FileType(FilePath)
-		
+
 		local NewFileEntry = FileEntryFrame:Clone()
 		NewFileEntry.FileName.Text = FileName
 		if FileType == "" then
@@ -2022,37 +2022,37 @@ function FileExplorer:Init()
 		else
 			NewFileEntry.FileType.Text = FileType:upper().." File"
 		end
-		
+
 		Modules.IconMap:GetFileMap(NewFileEntry.Icon, FileType)
 		NewFileEntry.Parent = FilesScrollingFrame
-		
+
 		ButtonEffect(NewFileEntry)
-		
+
 		local LastClick = tick()
-		
+
 		local a;a = NewFileEntry.InputBegan:Connect(function(Input)
 			if Input.UserInputType == Enum.UserInputType.MouseButton1 or Input.UserInputType == Enum.UserInputType.Touch then
 				if tick() - LastClick < .5 and not FileExplorer.MultipleSelect then
 					FileExplorer:Done()
 					return
 				end
-				
+
 				LastClick = tick()
 				FileExplorer:SelectFile(FilePath)
 			end
 		end)
-		
+
 		NewFileEntry.Destroying:Once(function()
 			FileExplorer.Uis[FilePath] = nil
 			a:Disconnect()
 		end)
-		
+
 		FileExplorer.Uis[FilePath] = NewFileEntry
 	end
-	
+
 	local WaitEvent = Instance.new("BindableEvent")
 	local WaitEvent2 = Instance.new("BindableEvent")
-	
+
 	function FileExplorer:FilesSort(Table, NameDown, TypeDown)
 		local nt = {}
 		local function SortBy(a, b)
@@ -2092,7 +2092,7 @@ function FileExplorer:Init()
 		end
 
 		table.sort(Table, SortBy)
-		
+
 		nt = Table
 		return nt
 	end
@@ -2105,15 +2105,15 @@ function FileExplorer:Init()
 		for i,v in pairs(FileExplorer.ButtonEffects) do
 			v.Leave()
 		end
-		
+
 		FileExplorer:JumpTo("")
-		
+
 		UpdateSelected()
-		
+
 		local a;a = FileSelectedFrame.Open.MouseButton1Click:Connect(function()
 			FileExplorer:Done()
 		end)
-		
+
 		WaitEvent.Event:Wait()
 
 		local tbl = {}
@@ -2122,22 +2122,22 @@ function FileExplorer:Init()
 				table.insert(tbl, i)
 			end
 		end
-		
+
 		WaitEvent2:Fire()
-		
+
 		return tbl
 	end
-	
+
 	function FileExplorer:Close()
 		WaitEvent:Fire()
-		
+
 		FileExplorerUi.Enabled = false
-		
+
 		FileExplorer.Selected = {}
-		
+
 		FileExplorer.FileTypes = {}
 	end
-	
+
 	function FileExplorer:Done()
 		if GetLength(FileExplorer.Selected) == 1 then
 			local _,File:File = next(FileExplorer.Selected)
@@ -2155,17 +2155,17 @@ function FileExplorer:Init()
 
 		WaitEvent:Fire()
 		WaitEvent2.Event:Wait()
-		
+
 		FileExplorer:Close()
 	end
-	
+
 	function FileExplorer:File(...)
 		local Types = {...}
 		FileExplorer.FileTypes = Types
-		
+
 		return FileExplorer:Open()
 	end
-	
+
 	function FileExplorer:JumpTo(Path)
 		warn("Jump to "..Path)
 		for i,v in ipairs(FilePathFrames:GetChildren()) do
@@ -2179,12 +2179,12 @@ function FileExplorer:Init()
 				v:Destroy()
 			end
 		end
-		
+
 		if DexEnv.genv.isfolder(Path) then
 			local Files : {string} = DexEnv.genv.listfiles(Path)
-			
+
 			local FilesTable = {}
-			
+
 			for _,FilePath in pairs(Files) do
 				table.insert(FilesTable,{
 					Name = FileExplorer:FileName(FilePath),
@@ -2192,49 +2192,49 @@ function FileExplorer:Init()
 					Type = FileExplorer:FileType(FilePath),
 				}::File)
 			end
-			
+
 			FileExplorer:FilesSort(FilesTable,true,true)
-			
+
 			for _,FileT in pairs(FilesTable) do
 				FileExplorer:NewFile(FileT.Path)
 			end
-			
+
 			local PathTable = string.split(Path, "/")
-			
+
 			for i = 1,#PathTable do
 				local FolderName = PathTable[i]
 				if FolderName == "" then continue end
 				local NewPathFrame = FilePathEntryFrame:Clone()
 				NewPathFrame.Parent = FilePathFrames
 				NewPathFrame.EntryName.Text = FolderName
-				
+
 				local CurrentPath = ""
-				
+
 				for l = 1,i do
 					CurrentPath = CurrentPath..PathTable[l].."/"
 				end
-				
+
 				CurrentPath = CurrentPath:sub(1,#CurrentPath-1)
-				
+
 				local a;a = NewPathFrame.EntryName.MouseButton1Click:Connect(function()
 					FileExplorer:JumpTo(CurrentPath)
 				end)
-				
+
 				NewPathFrame.Destroying:Once(function()
 					a:Disconnect()
 				end)
-				
+
 				ButtonEffect(NewPathFrame.EntryName)
 				ButtonEffect(NewPathFrame.EntryName.TextButton)
 			end
 		end
 	end
-	
+
 	local DefaultPath = FilePathEntryFrame:Clone()
 	DefaultPath.Parent = FilePathFrames
 	DefaultPath.EntryName.Text = "Executor"
 	DefaultPath.Name = "Default"
-	
+
 	local DefaultPath = FilePathEntryFrame:Clone()
 	DefaultPath.Parent = FilePathFrames
 	DefaultPath.EntryName.Text = "Workspace(C:)"
@@ -2242,7 +2242,7 @@ function FileExplorer:Init()
 	DefaultPath.EntryName.MouseButton1Click:Connect(function()
 		FileExplorer:JumpTo("")
 	end)
-	
+
 	ButtonEffect(DefaultPath.EntryName)
 	ButtonEffect(DefaultPath.EntryName.TextButton)
 	ButtonEffect(FilesScrollingFrame.Sort.NameSort)
@@ -2290,7 +2290,7 @@ do
 	UIShadow.Parent = Menu
 	UIShadow.BlurRadius = UDim.new(0, 3)
 
-	
+
 	MenuUi = Menu
 end
 
@@ -2342,7 +2342,7 @@ do
 	UIPadding.Parent = TextButton
 	UIPadding.PaddingRight = UDim.new(0.25, 0)
 	UIPadding.PaddingLeft = UDim.new(0.25, 0)
-	
+
 
 	local Hit = Instance.new("TextButton")
 	Hit.Parent = MenuEntry
@@ -2351,7 +2351,7 @@ do
 	Hit.Name = "Hit"
 	Hit.BackgroundTransparency = 1
 
-	
+
 	MenuEntryFrame = MenuEntry
 end
 
@@ -2393,10 +2393,10 @@ type MenuEntryArg = {
 
 function Menu:Init()
 	Menu.Values = {}
-	
+
 	Menu.Uis = {}
 	Menu.Hoving = {}
-	
+
 	Menu.MenuEntries = {
 		Instance = {
 			[1] = {
@@ -2419,7 +2419,7 @@ function Menu:Init()
 				Name = "Copy",
 				CallBack = function(Selected)
 					Menu.Values.Copies = {}
-					
+
 					for Node,_ in Selected do
 						if isService(Node.Obj.ClassName) then continue end
 						table.insert(Menu.Values.Copies,{
@@ -2439,14 +2439,14 @@ function Menu:Init()
 							local str = ""
 							for Node,_ in Selected do
 								local Path = GetPath(Node.Obj)
-								
+
 								if str ~= "" then
 									str = str .. "\n"
 								end
-								
+
 								str = str .. Path
 							end
-							
+
 							DexEnv.genv.setclipboard(str)
 						end,
 					}
@@ -2469,7 +2469,7 @@ function Menu:Init()
 					if not Menu.Values.Copies then
 						return true
 					end
-					
+
 					return #Menu.Values.Copies == 0
 				end,
 			},
@@ -2487,15 +2487,15 @@ function Menu:Init()
 					if not Menu.Values.Copies then
 						return true
 					end
-					
+
 					local HasParent = false
-					
+
 					for i,v in Menu.Values.Copies do
 						if v.Parent then
 							HasParent = true
 						end
 					end
-					
+
 					return #Menu.Values.Copies == 0 or not HasParent
 				end,
 			},
@@ -2537,7 +2537,7 @@ function Menu:Init()
 				CallBack = function(Selected)
 					local Model = Instance.new("Model")
 					Model.Parent = Selected[1].Obj.Parent
-					
+
 					for Node,_ in Selected do
 						if isService(Node.Obj.ClassName) then continue end
 						Node.Obj.Parent = Model
@@ -2550,7 +2550,7 @@ function Menu:Init()
 				CallBack = function(Selected)
 					local Folder = Instance.new("Folder")
 					Folder.Parent = Selected[1].Obj.Parent
-					
+
 					for Node,_ in Selected do
 						if isService(Node.Obj.ClassName) then continue end
 						Node.Obj.Parent = Folder
@@ -2577,7 +2577,7 @@ function Menu:Init()
 							HasGroup = true
 						end
 					end
-					
+
 					return not HasGroup
 				end,
 			},
@@ -2596,23 +2596,23 @@ function Menu:Init()
 							end
 						end,
 					},
-					
+
 					[2] = {
 						Name = "Insert rbxm",
 						CallBack = function(Selected)
 							local Files = FileExplorer:File("rbxm","rbxmx")
-							
+
 							if Files[1] then
 								local Clone = ImportRBXM(Files[1])
 								if Clone then
-									
+
 									for Node,_ in Selected do
 										Clone:Clone().Parent = Node.Obj
 									end
 								end
 							end
 						end,
-						
+
 						ExludedAll = function()
 							return not getcustomasset or not game.GetObjects
 						end,
@@ -2621,58 +2621,58 @@ function Menu:Init()
 			},
 		} :: {MenuEntryArg},
 	}
-	
+
 	function Menu:AddDivider(Menu)
 		local NewDivider = MenuDividerFrame:Clone()
 		NewDivider.Parent = Menu
-		
+
 		return NewDivider
 	end
-	
+
 	function Menu:AddEntry(MenuUi,Args : MenuEntryArg,Selected : { ExplorerNode },Index)
 		if Args.IsDrivider then
 			Menu:AddDivider(MenuUi)
 			return
 		end
-		
+
 		if Args.ExludedAll and Args.ExludedAll() then return end
-		
+
 		if GetLength(Selected) then
 			local Node,_ = next(Selected)
-			
+
 			if Args.Exluded and Args.Exluded(Node.Obj.ClassName) then return end
 		else
 			if Args.ExludedMulti and Args.ExludedMulti(Selected) then return end
 		end
-		
+
 		local NewEntry = MenuEntryFrame:Clone()
-		
+
 		NewEntry.Name = Args.Name
 		NewEntry.Parent = MenuUi
 		NewEntry.TextLabel.Text = Args.Name
-		
+
 		if Args.Icon then
 			NewEntry.ImageLabel.Image = Args.Icon
 		end
-		
+
 		local Connections = {}
-		
+
 		local Time = tick()
-		
+
 		Connections[1] = NewEntry.MouseEnter:Connect(function()
 			local NewTime = tick()
 			Time = NewTime
 			NewEntry.BackgroundTransparency = .9
-			
+
 			Menu.Hoving[Index] = NewEntry
-			
+
 			task.delay(Args.Children and .25 or 1,function()
 				if Menu.Hoving[Index] == NewEntry and Time == NewTime then
 					if Menu.Uis[Index+1] then
 						Menu.Uis[Index+1]:Destroy()
 						Menu.Uis[Index+1] = nil
 					end
-					
+
 					if Args.Children and #Args.Children > 0 then
 						local Ui = Menu:CreateUi(UDim2.fromOffset(NewEntry.AbsolutePosition.X,NewEntry.AbsolutePosition.Y+58) - UDim2.fromOffset(MenuUi.Size.X.Offset, 0),Args.Children,Selected,Index + 1)
 
@@ -2686,82 +2686,82 @@ function Menu:Init()
 				end
 			end)
 		end)
-		
+
 		Connections[2] = NewEntry.MouseLeave:Connect(function()
 			NewEntry.BackgroundTransparency = 1
-			
+
 			if Menu.Hoving[Index] == NewEntry then
 				Menu.Hoving[Index] = nil
 			end
 		end)
-		
+
 		if Args.Children then
 			NewEntry.TextButton.Visible = true
 		else
 			NewEntry.TextButton.Visible = false
-			
+
 			if Args.CallBack then
 				Connections[3] = NewEntry.Hit.MouseButton1Click:Connect(function()
 					Args.CallBack(Selected,NewEntry)
-					
+
 					if Menu.Uis[1] then
 						Menu.Uis[1]:Destroy()
 					end
 				end)
 			end
 		end
-		
+
 		Connections[4] = NewEntry.Destroying:Connect(function()
 			for i,v in pairs(Connections) do
 				v:Disconnect()
 			end
 		end)
 	end
-	
+
 	function Menu:CreateUi(Position,Args : { MenuEntryArg },Selected : { ExplorerNode },Index)
 		Index = Index or 1
-		
+
 		local NewUi = MenuUi:Clone()
 		NewUi.Parent = MainUi
 		NewUi.ZIndex = 1146
 		NewUi.Active = true
-		
+
 		if Position then
 			NewUi.Position = Position
 		end
-		
+
 		for i,v in pairs(Args) do
 			Menu:AddEntry(NewUi,v,Selected,Index)
 		end
-		
+
 		local RightBottom = NewUi.AbsolutePosition + NewUi.AbsoluteSize
-		
+
 		local ArchorPoint = Vector2.new(0,0)
-		
+
 		if RightBottom.X > MainUi.AbsoluteSize.X then
 			ArchorPoint += Vector2.new(1,0)
 		end
-		
+
 		if RightBottom.Y > MainUi.AbsoluteSize.Y then
 			ArchorPoint += Vector2.new(0,1)
 		end
-		
+
 		NewUi.AnchorPoint = ArchorPoint
-		
+
 		Menu.Uis[Index] = NewUi
-		
+
 		return NewUi
 	end
-	
+
 	function Menu:Show(Selected : { ExplorerNode })
 		local NewButton = Instance.new("TextLabel",MainUi)
 		NewButton.ZIndex = 1145
 		NewButton.Size = UDim2.new(1,0,1,0)
 		NewButton.BackgroundTransparency = 1
 		NewButton.Text = ""
-		
+
 		local NeedToDisplay = {}
-		
+
 		for Node,_ in pairs(Selected) do
 			for i,v in pairs(Menu.MenuEntries) do
 				if Node.Obj:IsA(i) then
@@ -2769,40 +2769,40 @@ function Menu:Init()
 				end
 			end
 		end
-		
+
 		local FinalDisplay = {}
-		
+
 		for i,v in pairs(NeedToDisplay) do
 			for i,v in pairs(v) do
 				table.insert(FinalDisplay,v)
 			end
 		end
-		
+
 		local Ui = Menu:CreateUi(UDim2.fromOffset(Mouse.X,Mouse.Y+58),FinalDisplay,Selected)
-		
+
 		NeedToDisplay = nil
 		FinalDisplay = nil
-		
+
 		local a
-		
+
 		local Event = Instance.new("BindableEvent")
-		
+
 		Ui.Destroying:Once(function()
 			if NewButton then
 				NewButton:Destroy()
 			end
-		
+
 			Event:Fire()
-		
+
 			a:Disconnect()
 		end)
-		
+
 		a=NewButton.InputBegan:Connect(function(input)
 			if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch or input.UserInputType == Enum.UserInputType.MouseButton2 then
 				Ui:Destroy()
 			end
 		end)
-		
+
 		Event.Event:Wait()
 		Event:Destroy()
 	end
@@ -3131,9 +3131,9 @@ type ExplorerNode = {
 Modules.Explorer = {
 	Nodes = {},
 	Expanded = {},
-	
+
 	Uis = {},
-	
+
 	Selected = {} :: {ExplorerNode},
 	MultipleSelect = false,
 	Hoving = nil :: ExplorerNode,
@@ -3146,11 +3146,11 @@ function Explorer:Init()
 	const maxNameWidth,maxDepth,count = 0,1,1
 	const expanded = Explorer.Expanded
 	const ExplorerUi = MainUi.Explorer
-	
+
 	const explorerOrders = {}
-	
+
 	local idCounter = 0
-	
+
 	function Explorer.NodeSorter(a,b)
 		if a.Del or b.Del then return false end -- Ghost node
 
@@ -3179,100 +3179,100 @@ function Explorer:Init()
 			end
 		end
 	end
-	
+
 	function Explorer.NodeDepth(node)
 		if node.Root then
 			return 0
 		end
 
 		local depth = 0
-		
+
 		local cur = node
-		
+
 		while cur and not cur.Root do
 			cur = cur.Parent
 			depth = depth + 1
 		end
-		
+
 		return depth
 	end
-	
+
 	const function sort(root)
 		table.sort(root.Children,Explorer.NodeSorter)
 	end
-	
+
 	const function EntryUpdate(Entry,Obj)
 		if not Entry or not Entry:FindFirstChild("Main") then
 			return
 		end
-		
+
 		if not Obj and not Explorer.Uis[Entry] then
 			return
 		end
-		
+
 		local Node : ExplorerNode
-		
+
 		if Obj then
 			Node = Explorer.Nodes[Obj]
 		else
 			Node = Explorer.Uis[Entry]
 			Obj = Node.Obj
 		end
-		
+
 		if not Node then
 			return
 		end
-		
+
 		Entry.Main.MainFrame.TextLabel.Text = Node.DisplayName or Obj.Name
-		
+
 		local NoRootChild = 0
-		
+
 		for i,v in ipairs(Node.Children) do
 			if v.Root then
 				continue
 			end
-			
+
 			NoRootChild = NoRootChild + 1
 		end
-		
+
 		Entry.Main.MainFrame.TextButton.Visible = NoRootChild > 0
 		Entry.Main.MainFrame.TextButton.Rotation = expanded[Node] and 180 or 90
-		
+
 		IconMap:GetClassIcon(Entry.Main.MainFrame.ImageLabel,Obj.ClassName)
-		
+
 		const depth = Explorer.NodeDepth(Node)
 		const LinesFrame = Entry.Main.Lines
-		
+
 		for i,v in ipairs(LinesFrame:GetChildren()) do
 			if v:IsA("Frame") then
 				v:Destroy()
 			end
 		end
-		
+
 		for i=1,depth do
 			local NewLine = LinesFrame.UIListLayout.Line:Clone()
 			NewLine.Parent = LinesFrame
 		end
-		
+
 		if Explorer.Selected[Node] then
 			Entry.Select.Visible = true
 		else
 			Entry.Select.Visible = false
 		end
 	end
-	
+
 	const function SetSelect(Node,Selected)
 		if Selected then
 			Explorer.Selected[Node] = true
 		else
 			Explorer.Selected[Node] = nil
 		end
-		
+
 		if Node.Ui then
 			EntryUpdate(Node.Ui,Node.Obj)
 		end
 	end
-	
+
 	const function ClearSelect(Exclude)
 		Exclude = Exclude or {}
 		for i,v in pairs(Explorer.Selected) do
@@ -3282,10 +3282,10 @@ function Explorer:Init()
 			SetSelect(i,false)
 		end
 	end
-	
+
 	const function ObjSelect(Node)
 		if not Explorer.Selected[Node] then
-			
+
 			if not Explorer.MultipleSelect then
 				ClearSelect()
 			end
@@ -3296,22 +3296,22 @@ function Explorer:Init()
 				SetSelect(Node,false)
 			else
 				ClearSelect()
-				
+
 				SetSelect(Node,true)
 			end
 		end
 	end
-	
+
 	Explorer.SetSelect = SetSelect
 	Explorer.ObjSelect = ObjSelect
 	Explorer.ClearSelect = ClearSelect
-	
+
 	const function CreateNewEntry(Node,DisplayName)
 		const NewEntry = EntryFrame:Clone()
 		const Button = NewEntry.Main.MainFrame.TextButton
-		
+
 		const Connections = {}
-		
+
 		table.insert(Connections,Button.MouseButton1Click:Connect(function()
 			if expanded[Node] then
 				Explorer:UnExpand(Node)
@@ -3319,13 +3319,13 @@ function Explorer:Init()
 				Explorer:Expand(Node)
 			end
 		end))
-		
+
 		EntryUpdate(NewEntry,Node.Obj)
-		
+
 		Node.Ui = NewEntry
-		
+
 		Explorer.Uis[NewEntry] = Node
-		
+
 		table.insert(Connections,NewEntry.Destroying:Connect(function()
 			if Node.Ui and Node.Ui == NewEntry then
 				Node.Ui = nil
@@ -3337,9 +3337,9 @@ function Explorer:Init()
 		end))
 
 		local LabelHoving = false
-		
+
 		local MenuHold = false
-		
+
 
 		table.insert(Connections,NewEntry.Hit.InputBegan:Connect(function(input)
 			if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
@@ -3348,7 +3348,7 @@ function Explorer:Init()
 				if not (LabelHoving and GetLength(Explorer.Selected) > 1) and not MultipleSelect.Visible then
 					ObjSelect(Node)
 				end
-				
+
 				if not LabelHoving then
 					local firstpos = input.Position
 					local MousePosition = Vector2.new(Mouse.X, Mouse.Y)
@@ -3356,6 +3356,7 @@ function Explorer:Init()
 					local FirstPosition = MousePosition + Vector2.new(CanvasPosition.X, CanvasPosition.Y)
 
 					local Dragging = false
+					local StartDrag = false
 					local SelectedNodes = {}
 
 					local ScrollingFrame = ExplorerUi.ScrollingFrame
@@ -3451,33 +3452,8 @@ function Explorer:Init()
 						return newSelected
 					end
 
-					local function HandleScrolling(mouseY, canvasPos)
-						local yTop = ScrollingFrame.AbsolutePosition.Y + 58
-						local yBottom = yTop + ScrollingFrame.AbsoluteSize.Y
-
-						local newCanvasY = canvasPos.Y
-						local shouldScroll = false
-
-						if mouseY <= yTop + 40 then
-							local scrollAmount = (yTop + 40) - mouseY
-							newCanvasY = canvasPos.Y - scrollAmount
-							shouldScroll = true
-						elseif mouseY >= yBottom - 60 then
-							local scrollAmount = mouseY - (yBottom - 60)
-							newCanvasY = canvasPos.Y + scrollAmount
-							shouldScroll = true
-						end
-
-						if shouldScroll then
-							if newCanvasY ~= canvasPos.Y then
-								ScrollingFrame.CanvasPosition = Vector2.new(canvasPos.X, newCanvasY)
-								return newCanvasY
-							end
-						end
-
-						return canvasPos.Y
-					end
 					
+
 					local lastUpdateTime = 0
 					local UPDATE_INTERVAL = 0.033
 					local frameCount = 0
@@ -3486,14 +3462,13 @@ function Explorer:Init()
 						local currentMousePos = Vector2.new(Mouse.X, Mouse.Y)
 
 						if Dragging then
-							
 							ScrollingFrame.ScrollingEnabled = false
+							ScrollingFrame:SetAttribute("AutoScrolling", true)
 							ScrollingFrame:SetAttribute("Disibled", true)
 
 							local canvasPos = ScrollingFrame.CanvasPosition
 							local inputPos = currentMousePos + Vector2.new(canvasPos.X, canvasPos.Y)
-
-							local newCanvasY = HandleScrolling(Mouse.Y, canvasPos)
+							
 							canvasPos = ScrollingFrame.CanvasPosition
 
 							local offset = UDim2.fromOffset(
@@ -3519,8 +3494,7 @@ function Explorer:Init()
 							local currentTime = tick()
 							frameCount = frameCount + 1
 
-							if currentTime - lastUpdateTime >= UPDATE_INTERVAL or 
-								newCanvasY ~= canvasPos.Y then
+							if currentTime - lastUpdateTime >= UPDATE_INTERVAL then
 								lastUpdateTime = currentTime
 
 								if frameCount % 5 == 0 then
@@ -3536,14 +3510,15 @@ function Explorer:Init()
 						if input.UserInputType == Enum.UserInputType.Touch then
 							if tick() - MenuHoldTick > 0.5 and 
 								(currentMousePos - Vector2.new(firstpos.X, firstpos.Y)).Magnitude < 5 then
-								Dragging = true
-								UpdateNodeCache(true)
+								StartDrag = true
+								return
+							elseif not StartDrag then return
 							end
-						else
-							if (currentMousePos - FirstPosition).Magnitude > 3 then
-								Dragging = true
-								UpdateNodeCache(true)
-							end
+						end
+
+						if (currentMousePos - FirstPosition).Magnitude > 3 then
+							Dragging = true
+							UpdateNodeCache(true)
 						end
 					end
 
@@ -3584,9 +3559,8 @@ function Explorer:Init()
 
 								UpdateNodeCache(true)
 								SelectedNodes = UpdateSelection(top, bottom, SelectedNodes)
-
 							elseif tick() - MenuHoldTick >= 0.5 then
-								if (Vector2.new(input.Position.X, input.Position.Y) - FirstPosition).Magnitude < 3 then
+								if (input.Position - firstpos).Magnitude < 5 then
 									task.spawn(function()
 										MenuHold = true
 										Explorer:ShowMenu()
@@ -3597,6 +3571,7 @@ function Explorer:Init()
 
 							ScrollingFrame.ScrollingEnabled = true
 							ScrollingFrame:SetAttribute("Disibled", nil)
+							ScrollingFrame:SetAttribute("AutoScrolling", nil)
 
 							Movement:Disconnect()
 							InputEnded:Disconnect()
@@ -3614,30 +3589,30 @@ function Explorer:Init()
 				end
 			end
 		end))
-		
+
 		local DoubleClick = false
 		local LastClick = tick()
-		
+
 		table.insert(Connections,NewEntry.Hit.MouseButton1Click:Connect(function()
 			if tick() - LastClick < 0.5 then
 				DoubleClick = true
-				
+
 				if Explorer.Expanded[Node] then
 					Explorer:UnExpand(Node)
 				else
 					Explorer:Expand(Node)
 				end
-				
+
 				local tic = tick()
-				
+
 				LastClick = tic
-				
+
 				task.delay(.5,function()
 					if LastClick == tic then
 						DoubleClick = false
 					end
 				end)
-				
+
 				return
 			elseif not DoubleClick then
 				LastClick = tick()
@@ -3645,11 +3620,11 @@ function Explorer:Init()
 				DoubleClick = false
 			end
 		end))
-		
+
 		table.insert(Connections,NewEntry.Hit.MouseButton2Click:Connect(function()
 			Explorer:ShowMenu()
 		end))
-		
+
 		if not Node.DisplayName then
 			table.insert(Connections,Node.Obj:GetPropertyChangedSignal("Name"):Connect(function()
 				if Node.Ui then
@@ -3657,12 +3632,12 @@ function Explorer:Init()
 				end
 			end))
 		end
-		
+
 		table.insert(Connections,Node.Obj.Destroying:Connect(function()
 			NewEntry:Destroy()
 			return
 		end))
-		
+
 		local function LabelConnectFunction(input)
 			if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
 				if MultipleSelect.Visible then
@@ -3674,10 +3649,13 @@ function Explorer:Init()
 				local FirstPos = input.Position
 				local Movement,Movement2,InputEnded
 				local Dragging = false
-				
+
 				local function CheckMovement(input)
 					if MultipleSelect.Visible then return end
 					if Dragging then
+						ExplorerUi.ScrollingFrame.ScrollingEnabled = false
+						ExplorerUi.ScrollingFrame:SetAttribute("AutoScrolling", true)
+						ExplorerUi.ScrollingFrame:SetAttribute("Disibled", true)
 						MoveFrame.Position = UDim2.fromOffset(input.Position.X,input.Position.Y+68)
 
 						local Selected = 0
@@ -3701,7 +3679,7 @@ function Explorer:Init()
 						MoveFrame.Visible = true
 						return
 					end
-					
+
 					if input.UserInputType == Enum.UserInputType.Touch then
 						if (input.Position - FirstPos).Magnitude < 3 and tick()-HoldTime > .5 then
 							Dragging = true
@@ -3723,7 +3701,7 @@ function Explorer:Init()
 
 				InputEnded = UserInputService.InputEnded:Connect(function(input)
 					if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-						
+
 						if Dragging then
 							local Hoving = Explorer.Hoving
 							if Hoving and Node ~= game and not Explorer.Selected[Hoving] then
@@ -3744,6 +3722,9 @@ function Explorer:Init()
 									SetSelect(Node1,true)
 								end
 							end
+							
+							ExplorerUi.ScrollingFrame:SetAttribute("AutoScrolling", nil)
+							ExplorerUi.ScrollingFrame:SetAttribute("Disibled", nil)
 						else
 							if GetLength(Explorer.Selected) > 1 then
 								if not MultipleSelect.Visible then
@@ -3768,7 +3749,7 @@ function Explorer:Init()
 
 						MoveFrame.Visible = false
 						LabelHoving = false
-						
+
 						Movement:Disconnect()
 						Movement2:Disconnect()
 						InputEnded:Disconnect()
@@ -3776,25 +3757,25 @@ function Explorer:Init()
 				end)
 			end
 		end
-		
+
 		table.insert(Connections,NewEntry.Main.MainFrame.TextLabel.InputBegan:Connect(LabelConnectFunction))
 		table.insert(Connections,NewEntry.Main.MainFrame.ImageLabel.InputBegan:Connect(LabelConnectFunction))
 		return NewEntry
 	end
-	
+
 	function Explorer:ChangeParent(Node1,Node2)
 		local Obj = Node1.Obj
 		Obj.Parent = Node2.Obj
-		
+
 		Explorer.ObjRemoved(Node1.Obj)
-		
+
 		local NewNode = Explorer.ObjAdded(Obj)
-		
+
 		NewNode.Parent = Node2
-		
+
 		return NewNode
 	end
-	
+
 	function Explorer:RefreshUi(Node)
 		if not expanded[Node] then
 			return "Alr has"
@@ -3803,7 +3784,7 @@ function Explorer:Init()
 		if not Node.Ui or not Node.Ui:FindFirstChild("Children") then
 			return "No ui"
 		end
-		
+
 		local NoRootChild = 0
 
 		for i,v in ipairs(Node.Children) do
@@ -3813,13 +3794,13 @@ function Explorer:Init()
 
 			NoRootChild = NoRootChild + 1
 		end
-	
+
 		if NoRootChild == 0 then
 			Explorer:UnExpand(Node)
 		end
-		
+
 		Node.Ui.Main.MainFrame.TextButton.Rotation = 180
-		
+
 		sort(Node)
 
 		for i, childUi in ipairs(Node.Ui.Children:GetChildren()) do
@@ -3832,17 +3813,17 @@ function Explorer:Init()
 			if v.Root then
 				continue
 			end
-			
+
 			local NewEntry = CreateNewEntry(v)
 			NewEntry.Parent = Node.Ui.Children
 			v.Ui = NewEntry
-			
+
 			if expanded[v] then
 				Explorer:RefreshUi(v)
 			end
 		end
 	end
-	
+
 	function Explorer.ObjAdded(Obj, Root)
 		local existing = Explorer.Nodes[Obj]
 		if existing then return existing end
@@ -3918,7 +3899,7 @@ function Explorer:Init()
 			Explorer.ObjRemoved(Obj)
 
 			Explorer.ObjAdded(Obj)
-			
+
 			Node.Connection:Disconnect()
 		end)
 
@@ -3946,14 +3927,14 @@ function Explorer:Init()
 		end
 
 		Explorer.Nodes[Obj] = nil
-		
+
 		if Explorer.Hoving == Node then Explorer.Hoving = nil end
 		if Explorer.Selected[Node] then Explorer.Selected[Node] = nil end
-		
+
 		if Node.Connection then
 			Node.Connection:Disconnect()
 		end
-		
+
 		Node = nil
 	end
 
@@ -3969,7 +3950,7 @@ function Explorer:Init()
 		EntryUpdate(Node.Ui, Node.Obj)
 		return err
 	end
-	
+
 	function Explorer:ExpandAllParent(Node)
 		if typeof(Node) == "Instance" then
 			Node = Explorer.Nodes[Node]
@@ -3988,51 +3969,51 @@ function Explorer:Init()
 
 		Explorer:Expand(Node)
 	end
-	
+
 	function Explorer:UnExpand(Node)
 		if typeof(Node) == "Instance" then
 			Node = Explorer.Nodes[Node]
 		end
 		expanded[Node] = nil
-		
+
 		for i,v in ipairs(Node.Ui.Children:GetChildren()) do
 			if v:IsA("Frame") then
 				v:Destroy()
 			end
 		end
-		
+
 		EntryUpdate(Node.Ui,Node.Obj)
 	end
-	
+
 	function Explorer:ShowMenu()
 		local Selected = Explorer.Selected
-		
+
 		if GetLength(Selected) == 0 then
 			return
 		end
-		
+
 		Menu:Show(Selected)
 	end
-	
+
 	Explorer.Roots = {}
-	
+
 	function Explorer:NewRoot(Obj,DisplayName,Expand)
 		Explorer.ObjAdded(Obj,"true")
-		
+
 		local Node = Explorer.Nodes[Obj]
 		Node.Root = true
 		Node.DisplayName = DisplayName
-		
+
 		Explorer.Roots[Obj] = Node
-		
+
 		if Node.Parent then
 			Explorer:RefreshUi(Node.Parent)
 		end
-		
+
 		local NewEntry = CreateNewEntry(Node)
 		NewEntry.Parent = ExplorerUi.ScrollingFrame
 		Node.Ui = NewEntry
-		
+
 		for i,v in pairs(Obj:GetDescendants()) do
 			Explorer.ObjAdded(v)
 		end
@@ -4040,36 +4021,36 @@ function Explorer:Init()
 		table.insert(DexEnv.Connections,Obj.DescendantAdded:Connect(Explorer.ObjAdded))
 		table.insert(DexEnv.Connections,Obj.DescendantRemoving:Connect(Explorer.ObjRemoved))
 
-		
+
 		if Expand then
 			Explorer:Expand(Obj)
 		end
 	end
-	 
+
 	function Explorer:RemoveRoot(Obj)
 		local Node = Explorer.Nodes[Obj]
 		if not Node or not Explorer.Roots[Obj] then warn("No node") return end
 
 		Node.Root = nil
 		Explorer.Roots[Obj] = nil
-		
+
 		if Node.Ui then
 			Node.Ui:Destroy()
 		end
-		
+
 		if Node.Parent then
 			EntryUpdate(Node.Parent.Ui,Node.Parent.Obj)
-			
+
 			Explorer:RefreshUi(Node.Parent)
 		end
 	end
-	
+
 	Explorer:NewRoot(game,`game({game.Name})`,true)
-	
+
 	Explorer:NewRoot(DexEnv.genv.gethui(),`HiddenGui({DexEnv.genv.gethui().Name})`)
-	
+
 	const ScrollBarFrame = ExplorerUi.Scroll
-	
+
 	local HovingScrollBar = false
 	local ScrollDragging = false
 
@@ -4100,34 +4081,62 @@ function Explorer:Init()
 			if input.UserInputType == Enum.UserInputType.MouseWheel then
 				ExplorerUi.ScrollingFrame.ScrollingEnabled = false
 				local Delta = input.Position.Z
-				
+
 				if Delta and Delta ~= 0 then
 					ExplorerUi.ScrollingFrame.CanvasPosition += Vector2.new(0,-Delta*18*3)
 				end
-				
+
 				ExplorerUi.ScrollingFrame.ScrollingEnabled = true
 			end
 		end)
-		
+
 		local b;b = ExplorerUi.MouseLeave:Connect(function()
 			a:Disconnect()
 			b:Disconnect()
 		end)
 	end)
-	
+
 	table.insert(DexEnv.Connections,UserInputService.InputChanged:Connect(function(Input)
 		if Input.UserInputType == Enum.UserInputType.MouseMovement then
 			ExplorerUi.ScrollingFrame.ScrollingEnabled = false
 		end
 	end))
-	
+
 	table.insert(DexEnv.Connections,UserInputService.TouchMoved:Connect(function()
 		if not ExplorerUi.ScrollingFrame:GetAttribute("Disibled") then
 			ExplorerUi.ScrollingFrame.ScrollingEnabled = true
 		end
 	end))
-	
+
 	table.insert(DexEnv.Connections,RunService.RenderStepped:Connect(function(deltaTime : number)
+		if ExplorerUi.ScrollingFrame:GetAttribute("AutoScrolling") then
+			local ScrollingFrame = ExplorerUi.ScrollingFrame
+			local yTop = ScrollingFrame.AbsolutePosition.Y + 58
+			local yBottom = yTop + ScrollingFrame.AbsoluteSize.Y
+			
+			local mouseY = Mouse.Y
+			local canvasPos = ScrollingFrame.CanvasPosition
+
+			local newCanvasY = canvasPos.Y
+			local shouldScroll = false
+
+			if mouseY <= yTop + 40 then
+				local scrollAmount = (yTop + 40) - mouseY
+				newCanvasY = canvasPos.Y - scrollAmount
+				shouldScroll = true
+			elseif mouseY >= yBottom - 60 then
+				local scrollAmount = mouseY - (yBottom - 60)
+				newCanvasY = canvasPos.Y + scrollAmount
+				shouldScroll = true
+			end
+
+			if shouldScroll then
+				if newCanvasY ~= canvasPos.Y then
+					ScrollingFrame.CanvasPosition = Vector2.new(canvasPos.X, newCanvasY)
+				end
+			end
+		end
+		
 		local MousePosition = Vector2.new(Mouse.X,Mouse.Y)
 		local HaveHover = false
 
@@ -4252,7 +4261,7 @@ function Modules:FetchRMD()
 			end
 		end
 	end
-	
+
 	for _,enum in pairs(enumList) do
 		local enumName = ""
 		for _,child in pairs(enum.children) do
@@ -4287,7 +4296,7 @@ end
 function Modules:Init()
 	Modules.InitModules = {}
 	warn("Install Module")
-	
+
 	for i,v in pairs(Urls) do
 		if v[3] and IsStudio then
 			Modules.InitModules[i] = v[3]()
@@ -4295,24 +4304,24 @@ function Modules:Init()
 		end
 		Modules.InitModules[i] = HttpGet(v[1],v[2])
 	end
-	
+
 	warn("注入RMD")
-	
+
 	Modules.InitModules.RMD = Modules:FetchRMD()
-	
+
 	print("注入菜单")
-	
+
 	Modules.Menu:Init()
-	
+
 	print("注入文件资源管理器")
-	
+
 	Modules.FileExplorer:Init()
-	
+
 	warn("IconMap Init")
 	Modules.IconMap:Init()
-	
+
 	warn("Explorer Init")
-	
+
 	MainUi.Parent = DexEnv.genv.gethui()
 	Modules.Explorer:Init()
 end
