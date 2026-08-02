@@ -35,6 +35,8 @@ const StudioFileTest = {
 }
 
 
+const GuiInsert = game:GetService("GuiService"):GetGuiInset().Y
+
 const Players = game:GetService("Players")
 const Player = Players.LocalPlayer
 const Mouse = Player:GetMouse()
@@ -94,6 +96,7 @@ end)
 RegisterFunction("newcclosure",function(Function)
 	return Function
 end)
+
 RegisterFunction("cloneref",function(obj)
 	const newobj : typeof(obj) = setmetatable({},{
 		__index = function(t,k)
@@ -112,6 +115,10 @@ RegisterFunction("cloneref",function(obj)
 end)
 
 if IsStudio then
+	RegisterFunction("decompile",function(script)
+		return script.Source
+	end)
+	
 	local function AssignParents(tbl, parent)
 		if parent then
 			setmetatable(tbl,{
@@ -278,6 +285,13 @@ function GetLength(Table)
 	return Length
 end
 
+function IsModel(Obj)
+	if typeof(Obj) == "table" and Obj.Obj then
+		Obj = Obj.Obj
+	end
+	return Obj:IsA("Model") or Obj:IsA("BasePart")
+end
+
 function RandomString(len : number)
 	local result = ""
 
@@ -289,6 +303,9 @@ function RandomString(len : number)
 end
 
 function isService(ClassName)
+	if typeof(ClassName) == "table" and ClassName.Obj then
+		ClassName = ClassName.Obj.ClassName
+	end
 	local sus,err = pcall(function()
 		return game:GetService(ClassName)
 	end)
@@ -298,6 +315,10 @@ function isService(ClassName)
 	end
 
 	return false
+end
+
+function CanChangeParent(obj)
+	return isService(obj.ClassName) or obj.ClassName == "DataModel"
 end
 
 function PointInArea(Point,LeftTop,RightBottom)
@@ -2391,6 +2412,7 @@ type MenuEntryArg = {
 	Exluded: (ClassName : string) -> boolean?,
 	ExludedMulti: (Selected : {ExplorerNode}) -> boolean?,
 	ExludedAll: (Selected : {ExplorerNode}) -> boolean?,
+	DisibledMulti : boolean?,
 }
 
 function Menu:Init()
@@ -2401,7 +2423,7 @@ function Menu:Init()
 
 	Menu.MenuEntries = {
 		Instance = {
-			[1] = {
+			{
 				Name = "Cut",
 				CallBack = function(Selected)
 					Menu.Values.Copies = {}
@@ -2417,7 +2439,7 @@ function Menu:Init()
 				end,
 				Exluded = isService,
 			},
-			[2] = {
+			{
 				Name = "Copy",
 				CallBack = function(Selected)
 					Menu.Values.Copies = {}
@@ -2432,7 +2454,7 @@ function Menu:Init()
 				end,
 				Exluded = isService,
 			},
-			[3] = {
+			{
 				Name = "Copy As",
 				Children = {
 					{
@@ -2454,10 +2476,10 @@ function Menu:Init()
 					}
 				},
 			},
-			[4] = {
+			{
 				IsDrivider = true,
 			},
-			[5] = {
+			{
 				Name = "Paste to",
 				CallBack = function(Selected)
 					for _,Obj in Menu.Values.Copies do
@@ -2475,7 +2497,7 @@ function Menu:Init()
 					return #Menu.Values.Copies == 0
 				end,
 			},
-			[6] = {
+			{
 				Name = "Paste to origin",
 				CallBack = function(Selected)
 					for _,Obj in Menu.Values.Copies do
@@ -2501,7 +2523,7 @@ function Menu:Init()
 					return #Menu.Values.Copies == 0 or not HasParent
 				end,
 			},
-			[7] = {
+			{
 				Name = "Duplicate",
 				CallBack = function(Selected)
 					for Node,_ in Selected do
@@ -2512,7 +2534,7 @@ function Menu:Init()
 				end,
 				Exluded = isService,
 			},
-			[8] = {
+			{
 				Name = "Delete",
 				CallBack = function(Selected)
 					for Node,_ in Selected do
@@ -2522,7 +2544,7 @@ function Menu:Init()
 				end,
 				Exluded = isService,
 			},
-			[9] = {
+			{
 				Name = "Rename",
 				CallBack = function(Selected)
 					select(-2,next(Selected)):Rename()
@@ -2531,46 +2553,80 @@ function Menu:Init()
 					return #Selected > 1
 				end,
 			},
-			[10] = {
+			{
 				IsDrivider = true,
 			},
-			[11] = {
+			{
 				Name = "Group to model",
 				CallBack = function(Selected)
 					local Model = Instance.new("Model")
-					Model.Parent = Selected[1].Obj.Parent
+					local Node,_ = next(Selected)
+					Model.Parent = Node.Obj.Parent
 
 					for Node,_ in Selected do
 						if isService(Node.Obj.ClassName) then continue end
 						Node.Obj.Parent = Model
 					end
+					
+					local ModelNode = Modules.Explorer.ObjAdded(Model)
+					
+					Modules.Explorer.ObjSelect(ModelNode)
+					Modules.Explorer:JumpTo(ModelNode)
 				end,
 				Exluded = isService
 			},
-			[12] = {
+			{
 				Name = "Group to folder",
 				CallBack = function(Selected)
 					local Folder = Instance.new("Folder")
-					Folder.Parent = Selected[1].Obj.Parent
+					local Node,_ = next(Selected)
+					Folder.Parent = Node.Obj.Parent
 
 					for Node,_ in Selected do
 						if isService(Node.Obj.ClassName) then continue end
 						Node.Obj.Parent = Folder
 					end
+					
+					local FolderNode = Modules.Explorer.ObjAdded(Folder)
+
+					Modules.Explorer.ObjSelect(FolderNode)
+					Modules.Explorer:JumpTo(FolderNode)
 				end,
 				Exluded = isService
 			},
-			[13] = {
+			{
 				Name = "Ungroup",
 				CallBack = function(Selected)
-					for Node,_ in Selected do
+					local s = Selected
+					
+					local n = {}
+					
+					for Node,_ in s do
 						if Node.Obj:IsA("Model") or Node.Obj:IsA("Folder") then
 							for _,v in Node.Obj:GetChildren() do
+								if not CanChangeParent(v) then continue end
+								
+								local Node1 = Modules.Explorer.Nodes[v]
+								
 								v.Parent = Node.Obj.Parent
+								
+								Modules.Explorer:RefreshNode(Node1)
+								Modules.Explorer.SetSelect(Node1,true)
 							end
-							Node.Obj:Destroy()
+							
+							table.insert(n,Node.Obj)
 						end
 					end
+					
+					task.defer(function()
+						for _,v in n do
+							v:Destroy()
+						end
+						
+						local Node,_ = next(Selected)
+
+						Modules.Explorer:JumpTo(Node)
+					end)
 				end,
 				ExludedMulti = function(Selected)
 					local HasGroup = false
@@ -2583,7 +2639,7 @@ function Menu:Init()
 					return not HasGroup
 				end,
 			},
-			[14] = {
+			{
 				Name = "Insert",
 				Children = {
 					[1] = {
@@ -2621,8 +2677,162 @@ function Menu:Init()
 					}
 				}
 			},
-		} :: {MenuEntryArg},
+			{
+				IsDrivider = true,
+				DisibledMulti = true,
+				Exluded = function(a)
+					return not IsModel(a)
+				end,
+			},
+			{
+				Name = "Teleport to ...",
+				DisibledMulti = true,
+				Exluded = function(a)
+					return not IsModel(a)
+				end,
+				CallBack = function(Selected)
+					local Node,_ = next(Selected)
+					local Obj = Node.Obj
+					
+					if Player and Player.Character then
+						Player.Character:PivotTo(Obj:GetPivot())
+					end
+				end,
+			},
+			{
+				Name = "View Model",
+				DisibledMulti = true,
+				Exluded = function(a)
+					return not IsModel(a)
+				end,
+				CallBack = function(Selected)
+					local Node,_ = next(Selected)
+					local Obj = Node.Obj
+					
+					if Menu.Values.CameraSubject then
+						workspace.CurrentCamera.CameraSubject = Menu.Values.CameraSubject
+						Menu.Values.CameraSubject = nil
+					else
+						Menu.Values.CameraSubject = workspace.CurrentCamera.CameraSubject
+						workspace.CurrentCamera.CameraSubject = Obj
+					end
+				end,
+			}
+		}::{MenuEntryArg},
+		Player = {
+			{
+				IsDrivider = true
+			},
+			{
+				Name = "Select Character",
+				CallBack = function(Selected)
+					Modules.Explorer.ClearSelect()
+					
+					for Node,_ in pairs(Selected) do
+						if Node.Obj:IsA("Player") and Node.Obj.Character then
+							local CharacterNode = Modules.Explorer.Nodes[Node.Obj.Character]
+							Modules.Explorer:ExpandAllParent(CharacterNode)
+							Modules.Explorer.SetSelect(CharacterNode,true)
+						end
+					end
+					
+					if next(Selected) then
+						Modules.Explorer:JumpTo(next(Selected))
+					end
+				end,
+			},
+			{
+				Name = "Teleport To",
+				CallBack = function(Selected)
+					local Node,_ = next(Selected)
+					local Obj = Node.Obj
+					
+					if Obj:IsA("Player") and Obj.Character then
+						if Player and Player.Character then
+							Player.Character:PivotTo(Obj.Character:GetPivot())
+						end
+					end
+				end,
+				DisibledMulti = true,
+			}
+		}::{MenuEntryArg}
 	}
+	
+	table.insert(Menu.MenuEntries.Instance,{
+		IsDrivider = true
+	})
+	table.insert(Menu.MenuEntries.Instance,{
+		Name = "Refresh Node",
+		CallBack = function(Selected)
+			for Node,_ in pairs(Selected) do
+				Modules.Explorer:RefreshUi(Node)
+			end
+		end,
+	})
+	table.insert(Menu.MenuEntries.Instance,{
+		Name = "Refresh All",
+		CallBack = function(Selected)
+			for obj,Node in pairs(Modules.Explorer.Roots) do
+				Modules.Explorer:RefreshUi(Node)
+			end
+		end,
+	})
+	table.insert(Menu.MenuEntries.Instance,{
+		Name = "Expand All",
+		CallBack = function(Selected)
+			for Node,_ in pairs(Selected) do
+				Modules.Explorer:ExpandAll(Node)
+			end
+		end,
+	})
+	table.insert(Menu.MenuEntries.Instance,{
+		Name = "UnExpand All",
+		CallBack = function(Selected)
+			for Node,_ in pairs(Selected) do
+				Modules.Explorer:UnExpandAll(Node)
+			end
+		end,
+	})
+	table.insert(Menu.MenuEntries.Instance,{
+		Name = "Set Root",
+		CallBack = function(Selected)
+			for Node,_ in pairs(Selected) do
+				if Node.Root then continue end
+				Modules.Explorer:NewRoot(Node.Obj)
+			end
+		end,
+		Exluded = function(Node)
+			return Node.Root
+		end,
+		ExludedMulti = function(Selected)
+			for Node,_ in pairs(Selected) do
+				if not Node.Root then
+					return false
+				end
+			end
+			return true
+		end,
+	})
+	table.insert(Menu.MenuEntries.Instance,{
+		Name = "UnSet Root",
+		CallBack = function(Selected)
+			for Node,_ in pairs(Selected) do
+				if not Node.Root then continue end
+				Modules.Explorer:RemoveRoot(Node.Obj)
+			end
+		end,
+		ExludedMulti = function(Selected)
+			for Node,_ in pairs(Selected) do
+				if Node.Root then return false end
+			end
+			return true
+		end,
+		Exluded = function(Node)
+			return not Node.Root
+		end,
+	})
+
+
 
 	function Menu:AddDivider(Menu)
 		local NewDivider = MenuDividerFrame:Clone()
@@ -2632,21 +2842,22 @@ function Menu:Init()
 	end
 
 	function Menu:AddEntry(MenuUi,Args : MenuEntryArg,Selected : { ExplorerNode },Index)
+		if Args.ExludedAll and Args.ExludedAll() then return end
+		
+		if GetLength(Selected) == 1 then
+			local Node,_ = next(Selected)
+
+			if Args.Exluded and Args.Exluded(Node) then return end
+		elseif GetLength(Selected) > 1 then
+			if Args.DisibledMulti then return end
+			if Args.ExludedMulti and Args.ExludedMulti(Selected) then return end
+		end
+		
 		if Args.IsDrivider then
 			Menu:AddDivider(MenuUi)
 			return
 		end
-
-		if Args.ExludedAll and Args.ExludedAll() then return end
-
-		if GetLength(Selected) then
-			local Node,_ = next(Selected)
-
-			if Args.Exluded and Args.Exluded(Node.Obj.ClassName) then return end
-		else
-			if Args.ExludedMulti and Args.ExludedMulti(Selected) then return end
-		end
-
+		
 		local NewEntry = MenuEntryFrame:Clone()
 
 		NewEntry.Name = Args.Name
@@ -2676,7 +2887,7 @@ function Menu:Init()
 					end
 
 					if Args.Children and #Args.Children > 0 then
-						local Ui = Menu:CreateUi(UDim2.fromOffset(NewEntry.AbsolutePosition.X,NewEntry.AbsolutePosition.Y+58) - UDim2.fromOffset(MenuUi.Size.X.Offset, 0),Args.Children,Selected,Index + 1)
+						local Ui = Menu:CreateUi(UDim2.fromOffset(NewEntry.AbsolutePosition.X,NewEntry.AbsolutePosition.Y+GuiInsert) - UDim2.fromOffset(MenuUi.Size.X.Offset, 0),Args.Children,Selected,Index + 1)
 
 						MenuUi.Destroying:Once(function()
 							Ui:Destroy()
@@ -2710,7 +2921,7 @@ function Menu:Init()
 					Menu.Uis[Index+1] = nil
 				end
 				if Args.Children and #Args.Children > 0 then
-					local Ui = Menu:CreateUi(UDim2.fromOffset(NewEntry.AbsolutePosition.X,NewEntry.AbsolutePosition.Y+58) - UDim2.fromOffset(MenuUi.Size.X.Offset, 0),Args.Children,Selected,Index + 1)
+					local Ui = Menu:CreateUi(UDim2.fromOffset(NewEntry.AbsolutePosition.X,NewEntry.AbsolutePosition.Y+GuiInsert) - UDim2.fromOffset(MenuUi.Size.X.Offset, 0),Args.Children,Selected,Index + 1)
 					MenuUi.Destroying:Once(function()
 						Ui:Destroy()
 						Args.Ui = nil
@@ -2728,7 +2939,7 @@ function Menu:Init()
 
 			if Args.CallBack then
 				Connections[3] = NewEntry.Hit.MouseButton1Click:Connect(function()
-					Args.CallBack(Selected,NewEntry)
+					Args.CallBack(table.clone(Selected),NewEntry)
 
 					if Menu.Uis[1] then
 						Menu.Uis[1]:Destroy()
@@ -2804,7 +3015,7 @@ function Menu:Init()
 			end
 		end
 
-		local Ui = Menu:CreateUi(UDim2.fromOffset(Mouse.X,Mouse.Y+58),FinalDisplay,Selected)
+		local Ui = Menu:CreateUi(UDim2.fromOffset(Mouse.X,Mouse.Y+GuiInsert),FinalDisplay,Selected)
 
 		NeedToDisplay = nil
 		FinalDisplay = nil
@@ -2901,7 +3112,7 @@ do
 	MainFrame.Parent = Main
 	MainFrame.Name = "MainFrame"
 	MainFrame.BackgroundTransparency = 1
-	MainFrame.Size = UDim2.fromScale(0, 1)
+	MainFrame.Size = UDim2.fromOffset(0, 18)
 	MainFrame.BorderColor3 = Color3.fromRGB(0, 0, 0)
 	MainFrame.BorderSizePixel = 0
 	MainFrame.AutomaticSize = Enum.AutomaticSize.X
@@ -3228,6 +3439,7 @@ function Explorer:Init()
 	end
 
 	const function EntryUpdate(Entry,Obj)
+		if typeof(Entry)=="table" then Entry = Entry.Ui end
 		if not Entry or not Entry:FindFirstChild("Main") then
 			return
 		end
@@ -3393,6 +3605,14 @@ function Explorer:Init()
 					local CacheVersion = 0
 					local LastCacheUpdate = 0
 					local CACHE_REFRESH_INTERVAL = 0.1
+					
+					local function Find(frame)
+						for i,v in ipairs(NodeCache) do
+							if v.frame == frame then
+								return i
+							end
+						end
+					end
 
 					local function UpdateNodeCache(force)
 						local currentTime = tick()
@@ -3417,16 +3637,16 @@ function Explorer:Init()
 						for v, Node in pairs(Explorer.Uis) do
 							if v:IsA("Frame") then
 								local absPos = v.AbsolutePosition
-								local nodeTop = absPos.Y + 58
-								local nodeBottom = absPos.Y + 18 + 58
+								local nodeTop = absPos.Y + GuiInsert
+								local nodeBottom = absPos.Y + 18 + GuiInsert
 
-								if nodeBottom >= visibleTop and nodeTop <= visibleBottom then
+								if (nodeBottom >= visibleTop and nodeTop <= visibleBottom) or Find(v) then
 									newCache[cacheIndex] = {
 										node = Node,
 										frame = v,
 										top = nodeTop,
 										bottom = nodeBottom,
-										centerY = absPos.Y + 58,
+										centerY = absPos.Y + GuiInsert,
 										ref = v
 									}
 									cacheIndex = cacheIndex + 1
@@ -3490,7 +3710,7 @@ function Explorer:Init()
 
 						if Dragging then
 							ScrollingFrame.ScrollingEnabled = false
-							ScrollingFrame:SetAttribute("AutoScrolling", true)
+							ScrollingFrame:SetAttribute("AutoScrolling", "Muilt")
 							ScrollingFrame:SetAttribute("Disibled", true)
 
 							local canvasPos = ScrollingFrame.CanvasPosition
@@ -3505,7 +3725,7 @@ function Explorer:Init()
 
 							local firstPos = UDim2.fromOffset(
 								FirstPosition.X - canvasPos.X,
-								FirstPosition.Y + 58 - canvasPos.Y
+								FirstPosition.Y + GuiInsert - canvasPos.Y
 							)
 
 							MultipleSelect.Size = offset
@@ -3545,7 +3765,7 @@ function Explorer:Init()
 							end
 						end
 
-						if (currentMousePos - FirstPosition).Magnitude > 3 then
+						if (currentMousePos - Vector2.new(firstpos.X, firstpos.Y)).Magnitude > 3 then
 							Dragging = true
 							UpdateNodeCache(true)
 						end
@@ -3580,7 +3800,7 @@ function Explorer:Init()
 								)
 								local firstPos = UDim2.fromOffset(
 									FirstPosition.X - canvasPos.X,
-									FirstPosition.Y + 58 - canvasPos.Y
+									FirstPosition.Y + GuiInsert - canvasPos.Y
 								)
 								local top = firstPos.Y.Offset
 								local bottom = firstPos.Y.Offset + offset.Y.Offset
@@ -3590,7 +3810,7 @@ function Explorer:Init()
 								SelectedNodes = UpdateSelection(top, bottom, SelectedNodes)
 							elseif tick() - MenuHoldTick >= 0.5 then
 								if (input.Position - firstpos).Magnitude < 5 then
-									task.spawn(function()
+									task.defer(function()
 										MenuHold = true
 										Explorer:ShowMenu()
 										MenuHold = false
@@ -3683,7 +3903,7 @@ function Explorer:Init()
 					if MultipleSelect.Visible then return end
 					if Dragging then
 						ExplorerUi.ScrollingFrame.ScrollingEnabled = false
-						ExplorerUi.ScrollingFrame:SetAttribute("AutoScrolling", true)
+						ExplorerUi.ScrollingFrame:SetAttribute("AutoScrolling", "Label")
 						ExplorerUi.ScrollingFrame:SetAttribute("Disibled", true)
 						MoveFrame.Position = UDim2.fromOffset(input.Position.X,input.Position.Y+68)
 
@@ -3740,16 +3960,18 @@ function Explorer:Init()
 									local obj = Node1.Obj
 									if obj:IsAncestorOf(Hoving.Obj) then continue end
 									if table.find(Hoving.Obj:GetChildren(),obj) then continue end
-									table.insert(ToSelect,Explorer:ChangeParent(Node1,Hoving))
+									if not CanChangeParent(obj) then continue end
+									
+									Node1.Obj.Parent = Hoving.Obj
 								end
-
-								ClearSelect()
-
-								Explorer:Expand(Hoving)
-
-								for _,Node1 in pairs(ToSelect) do
-									SetSelect(Node1,true)
-								end
+								
+								local Node1,_ = next(Explorer.Selected)
+								
+								task.defer(function()
+									Explorer:Expand(Hoving)
+									
+									Explorer:JumpTo(Node1)
+								end)
 							end
 
 							ExplorerUi.ScrollingFrame:SetAttribute("AutoScrolling", nil)
@@ -3792,17 +4014,71 @@ function Explorer:Init()
 		return NewEntry
 	end
 
-	function Explorer:ChangeParent(Node1,Node2)
+	local function Refresh(v)
+		if v.Ui then
+			EntryUpdate(v.Ui,v.Obj)
+		end
+		if not v.Children then return end
+
+		for i, v in ipairs(v.Children) do
+			Refresh(v)
+		end
+	end
+
+	function Explorer:RefreshNode(Node1)
 		local Obj = Node1.Obj
-		Obj.Parent = Node2.Obj
+		local OldParent = Node1.Parent
 
-		Explorer.ObjRemoved(Node1.Obj)
+		local OldIndex = table.find(OldParent.Children,Node1)
+		if OldIndex then
+			table.remove(OldParent.Children,OldIndex)
+		end
+		
+		if OldParent.Ui then
+			EntryUpdate(OldParent)
+		end
 
-		local NewNode = Explorer.ObjAdded(Obj)
+		local NewParent = Node1.Obj.Parent
+		local NewParentNode = Explorer.Nodes[NewParent]
+		
+		if NewParentNode then
+			table.insert(NewParentNode.Children,Node1)
+			Node1.Parent = NewParentNode
 
-		NewNode.Parent = Node2
+			if NewParentNode.Ui then
+				if expanded[NewParentNode] then
+					if not Node1.Ui then
+						local Newui = CreateNewEntry(Node1)
+						Node1.Ui = Newui
+						Newui.Parent = NewParentNode.Ui.Children
+					end
+					
+					Refresh(Node1)
+				elseif Node1.Ui then
+					Node1.Ui:Destroy()
+				end
+			end
 
-		return NewNode
+			EntryUpdate(NewParentNode)
+		else
+			Node1.Parent = nil
+		end
+	end
+	
+	function Explorer:JumpTo(Node)
+		local Ui = Node.Ui
+		if not Ui then return end
+		
+		local Position = Ui.AbsolutePosition.Y
+		
+		local Scroll = ExplorerUi.ScrollingFrame
+		
+		local ScrollPosition =  Scroll.AbsolutePosition.Y
+		local ScrollSize = Scroll.AbsoluteSize.Y
+		
+		if Position < ScrollPosition or Position > ScrollPosition + ScrollSize then
+			Scroll.CanvasPosition = Vector2.new(0,Position - Scroll.AbsolutePosition.Y - Scroll.AbsoluteSize.Y/2)
+		end
 	end
 
 	function Explorer:RefreshUi(Node)
@@ -3834,12 +4110,16 @@ function Explorer:Init()
 
 		for i, childUi in ipairs(Node.Ui.Children:GetChildren()) do
 			if childUi:IsA("Frame") then
+				if Explorer.Uis[childUi] then
+					Explorer.Uis[childUi].Ui = nil
+				end
+				
 				childUi:Destroy()
 			end
 		end
-
+		
 		for i, v in ipairs(Node.Children) do
-			if v.Root then
+			if v.Root or v.Ui then
 				continue
 			end
 
@@ -3915,21 +4195,20 @@ function Explorer:Init()
 		if ParentNode and ParentNode.Ui then
 			EntryUpdate(ParentNode.Ui,ParentNode.Obj)
 
-			Explorer:RefreshUi(ParentNode)
+			if expanded[ParentNode] then
+				local Newui = CreateNewEntry(Node)
+				
+				Node.Ui = Newui
+				
+				Newui.Parent = ParentNode.Ui.Children
+			end
+			--Explorer:RefreshUi(ParentNode)
 		end
 
 		Node.Connection = Obj:GetPropertyChangedSignal("Parent"):Connect(function()
 			if not Obj.Parent or not Explorer.Nodes[Obj] then return end
-			if Obj.Parent == Explorer.Nodes[Obj].Parent.Obj then
-				Node.Connection:Disconnect()
-				return
-			end
-
-			Explorer.ObjRemoved(Obj)
-
-			Explorer.ObjAdded(Obj)
-
-			Node.Connection:Disconnect()
+			
+			Explorer:RefreshNode(Node)
 		end)
 
 		return Node
@@ -3944,7 +4223,7 @@ function Explorer:Init()
 			local idx = table.find(ParentNode.Children, Node)
 			if idx then table.remove(ParentNode.Children, idx) end
 			if ParentNode.Ui then
-				Explorer:RefreshUi(ParentNode)
+				--Explorer:RefreshUi(ParentNode)
 				EntryUpdate(ParentNode.Ui,ParentNode.Obj)
 			end
 		end
@@ -3979,24 +4258,43 @@ function Explorer:Init()
 		EntryUpdate(Node.Ui, Node.Obj)
 		return err
 	end
+	
+	function Explorer:ExpandAll(Node)
+		if typeof(Node) == "Instance" then
+			Node = Explorer.Nodes[Node]
+		end
+		Explorer:Expand(Node)
+		for i,v in ipairs(Node.Children) do
+			Explorer:ExpandAll(v)
+		end
+	end
+	
+	function Explorer:UnExpandAll(Node)
+		if typeof(Node) == "Instance" then
+			Node = Explorer.Nodes[Node]
+		end
+		
+		Explorer:UnExpand(Node)
+		for i,v in ipairs(Node.Children) do
+			Explorer:UnExpand(v)
+		end
+	end
 
 	function Explorer:ExpandAllParent(Node)
 		if typeof(Node) == "Instance" then
 			Node = Explorer.Nodes[Node]
 		end
 
-		local ancestors = {}
 		local par = Node.Parent
+		
 		while par do
-			table.insert(ancestors, par)
+			if not expanded[par] then
+				Explorer:Expand(par)
+			end
 			par = par.Parent
 		end
 
-		for i = #ancestors, 1, -1 do
-			Explorer:Expand(ancestors[i])
-		end
-
-		Explorer:Expand(Node)
+		--Explorer:Expand(Node)
 	end
 
 	function Explorer:UnExpand(Node)
@@ -4005,13 +4303,15 @@ function Explorer:Init()
 		end
 		expanded[Node] = nil
 
-		for i,v in ipairs(Node.Ui.Children:GetChildren()) do
-			if v:IsA("Frame") then
-				v:Destroy()
+		if Node.Ui and Node.Ui:FindFirstChild("Children") then
+			for i,v in ipairs(Node.Ui.Children:GetChildren()) do
+				if v:IsA("Frame") then
+					v:Destroy()
+				end
 			end
-		end
 
-		EntryUpdate(Node.Ui,Node.Obj)
+			EntryUpdate(Node.Ui,Node.Obj)
+		end
 	end
 
 	function Explorer:ShowMenu()
@@ -4073,11 +4373,12 @@ function Explorer:Init()
 			Explorer:RefreshUi(Node.Parent)
 		end
 	end
-
+	Explorer:NewRoot(Player,`LocalPlayer({Player.Name})`)
+	
 	Explorer:NewRoot(game,`game({game.Name})`,true)
 
 	Explorer:NewRoot(DexEnv.genv.gethui(),`HiddenGui({DexEnv.genv.gethui().Name})`)
-
+	
 	const ScrollBarFrame = ExplorerUi.Scroll
 
 	local HovingScrollBar = false
@@ -4140,21 +4441,26 @@ function Explorer:Init()
 	table.insert(DexEnv.Connections,RunService.RenderStepped:Connect(function(deltaTime : number)
 		if ExplorerUi.ScrollingFrame:GetAttribute("AutoScrolling") then
 			local ScrollingFrame = ExplorerUi.ScrollingFrame
-			local yTop = ScrollingFrame.AbsolutePosition.Y + 58
+			local yTop = ScrollingFrame.AbsolutePosition.Y-- + GuiInsert
 			local yBottom = yTop + ScrollingFrame.AbsoluteSize.Y
 
 			local mouseY = Mouse.Y
 			local canvasPos = ScrollingFrame.CanvasPosition
+			
+			local M = .25
 
 			local newCanvasY = canvasPos.Y
 			local shouldScroll = false
+			
+			local Top = 20
+			local Bottom = 20
 
-			if mouseY <= yTop + 40 then
-				local scrollAmount = (yTop + 40) - mouseY
+			if mouseY <= yTop + Top then
+				local scrollAmount = ((yTop + Top) - mouseY) * M
 				newCanvasY = canvasPos.Y - scrollAmount
 				shouldScroll = true
-			elseif mouseY >= yBottom - 60 then
-				local scrollAmount = mouseY - (yBottom - 60)
+			elseif mouseY >= yBottom - Bottom then
+				local scrollAmount = (mouseY - (yBottom - Bottom)) * M
 				newCanvasY = canvasPos.Y + scrollAmount
 				shouldScroll = true
 			end
