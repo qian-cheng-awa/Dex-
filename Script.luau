@@ -3,6 +3,10 @@
 1. 文件资源管理器 + 适配studio文件系统
 
 2. 代码更改，修复bug
+
+3. 全面优化移动端适配
+
+4. 优化框选表现，不再异常卡顿
 ]]
 
 --[[
@@ -44,11 +48,8 @@ const UrlFilePath = DexFilePath.."UrlCache/"
 
 const RandomNameLength = 25
 
-const DexEnv = _G.DexEnvironment or {}
-
-if not _G.DexEnvironment then
-	_G.DexEnvironment = DexEnv
-end
+_G.DexEnvironment = _G.DexEnvironment or {}
+const DexEnv = _G.DexEnvironment
 
 DexEnv.ExploitFunctions = {}
 setmetatable(DexEnv.ExploitFunctions, {
@@ -74,6 +75,15 @@ const function RegisterFunction(Name, Function)
 	end
 	
 	DexEnv.genv[Name] = newcclosure and newcclosure(Function) or Function
+end
+DexEnv.Ui = DexEnv.Ui or {}
+for i,v in pairs(DexEnv.Ui) do
+	v:Destroy()
+end
+
+DexEnv.Connections = DexEnv.Connections or {}
+for i,v in pairs(DexEnv.Connections) do
+	v:Disconnect()
 end
 
 -- [-[ 环境注册 ]-]
@@ -257,7 +267,7 @@ end
 
 -- [-[ 全局函数 ]-]
 function ImportRBXM(FileRBXM : string)
-	return DexEnv.genv.getobjects(getcustomasset("test.rbxm"))[1]
+	return DexEnv.genv.getobjects(game,getcustomasset(FileRBXM))[1]
 end
 
 function GetLength(Table)
@@ -599,6 +609,8 @@ const Modules = {
 -- [-[ UI ]-]
 local MainUi
 
+
+
 do
 
 	local DexMainUi = Instance.new("ScreenGui")
@@ -621,7 +633,7 @@ do
 	ScrollingFrame.ScrollBarImageColor3 = Color3.fromRGB(96, 102, 115)
 	ScrollingFrame.Active = true
 	ScrollingFrame.AutomaticCanvasSize = Enum.AutomaticSize.XY
-	ScrollingFrame.ScrollBarThickness = 5
+	ScrollingFrame.ScrollBarThickness = 10
 	ScrollingFrame.Parent = Explorer
 	ScrollingFrame.Size = UDim2.fromScale(1, 1)
 	ScrollingFrame.VerticalScrollBarInset = Enum.ScrollBarInset.Always
@@ -687,6 +699,7 @@ do
 
 
 	MainUi = DexMainUi
+	DexEnv.Ui["Main"] = MainUi
 end
 
 -- [-[ Class图标 ]-]
@@ -1138,13 +1151,13 @@ function IconMap:Init()
 	if IsStudio then
 		IconMap.Classes.Map = Urls.IconMap[3]()
 	else
-		IconMap.Classes.Map = getcustomasset(UrlFilePath..Urls.IconMap[1])
+		IconMap.Classes.Map = getcustomasset(UrlFilePath..crc32(Urls.IconMap[1]))
 	end
 	
 	if IsStudio then
 		IconMap.Files.Map = Urls.FileIconMap[3]()
 	else
-		IconMap.Files.Map = getcustomasset(UrlFilePath..Urls.FileIconMap[1])
+		IconMap.Files.Map = getcustomasset(UrlFilePath..crc32(Urls.FileIconMap[1]))
 	end
 	
 	function IconMap:Apply(Image,Id,Size,Offset)
@@ -1346,7 +1359,7 @@ do
 	ScrollingFrame.Active = true
 	ScrollingFrame.AutomaticCanvasSize = Enum.AutomaticSize.XY
 	ScrollingFrame.Position = UDim2.fromOffset(5, 0)
-	ScrollingFrame.ScrollBarThickness = 2
+	ScrollingFrame.ScrollBarThickness = 5
 	ScrollingFrame.Parent = Files
 	ScrollingFrame.Size = UDim2.new(1, -10, 1.1, -50)
 	ScrollingFrame.VerticalScrollBarInset = Enum.ScrollBarInset.Always
@@ -1602,6 +1615,7 @@ do
 	FileName.TextColor3 = Color3.fromRGB(0, 0, 0)
 	FileName.BorderColor3 = Color3.fromRGB(0, 0, 0)
 	FileName.Text = "Main.lua"
+	FileName.ClearTextOnFocus = false
 	FileName.Position = UDim2.fromOffset(100, 10)
 	FileName.BorderSizePixel = 0
 	FileName.Font = Enum.Font.SourceSans
@@ -1720,6 +1734,7 @@ do
 	FileExplorerUi = FileExplorer
 	FileExplorerUi.Parent = DexEnv.genv.gethui()
 	FileExplorerUi.Enabled = false
+	DexEnv.Ui["FE"] = FileExplorerUi
 end
 
 local FileEntryFrame
@@ -1758,6 +1773,7 @@ do
 	FileName.Text = "file.mp4"
 	FileName.Parent = FileEntry
 	FileName.Name = "FileName"
+	FileName.TextTruncate = Enum.TextTruncate.AtEnd
 	FileName.Size = UDim2.new(0, 300, 1, 0)
 	FileName.Font = Enum.Font.SourceSans
 	FileName.BackgroundTransparency = 1
@@ -2037,6 +2053,49 @@ function FileExplorer:Init()
 	local WaitEvent = Instance.new("BindableEvent")
 	local WaitEvent2 = Instance.new("BindableEvent")
 	
+	function FileExplorer:FilesSort(Table, NameDown, TypeDown)
+		local nt = {}
+		local function SortBy(a, b)
+			local NameA = a.Name or ""
+			local NameB = b.Name or ""
+			local TypeA = a.Type or ""
+			local TypeB = b.Type or ""
+
+			local IsFolderA = a.IsFolder or (a.Type == "folder")
+			local IsFolderB = b.IsFolder or (b.Type == "folder")
+
+			if IsFolderA ~= IsFolderB then
+				return IsFolderA
+			end
+
+			if TypeDown ~= nil then
+				if TypeA ~= TypeB then
+					if TypeDown then
+						return TypeA > TypeB
+					else
+						return TypeA < TypeB
+					end
+				end
+			end
+
+			if NameDown ~= nil then
+				if NameA ~= NameB then
+					if NameDown then
+						return NameA > NameB
+					else
+						return NameA < NameB
+					end
+				end
+			end
+
+			return false
+		end
+
+		table.sort(Table, SortBy)
+		
+		nt = Table
+		return nt
+	end
 	function FileExplorer:Open()
 		FileExplorerUi.Enabled = true
 
@@ -2048,6 +2107,8 @@ function FileExplorer:Init()
 		end
 		
 		FileExplorer:JumpTo("")
+		
+		UpdateSelected()
 		
 		local a;a = FileSelectedFrame.Open.MouseButton1Click:Connect(function()
 			FileExplorer:Done()
@@ -2122,8 +2183,20 @@ function FileExplorer:Init()
 		if DexEnv.genv.isfolder(Path) then
 			local Files : {string} = DexEnv.genv.listfiles(Path)
 			
+			local FilesTable = {}
+			
 			for _,FilePath in pairs(Files) do
-				FileExplorer:NewFile(FilePath)
+				table.insert(FilesTable,{
+					Name = FileExplorer:FileName(FilePath),
+					Path = FilePath,
+					Type = FileExplorer:FileType(FilePath),
+				}::File)
+			end
+			
+			FileExplorer:FilesSort(FilesTable,true,true)
+			
+			for _,FileT in pairs(FilesTable) do
+				FileExplorer:NewFile(FileT.Path)
 			end
 			
 			local PathTable = string.split(Path, "/")
@@ -2525,12 +2598,12 @@ function Menu:Init()
 					},
 					
 					[2] = {
-						Name = "Insert roblox model(rbxm)",
+						Name = "Insert rbxm",
 						CallBack = function(Selected)
-							local File = FileExplorer:File("rbxm","rbxmx")
+							local Files = FileExplorer:File("rbxm","rbxmx")
 							
-							if File then
-								local Clone = ImportRBXM(File)
+							if Files[1] then
+								local Clone = ImportRBXM(Files[1])
 								if Clone then
 									
 									for Node,_ in Selected do
@@ -2541,7 +2614,7 @@ function Menu:Init()
 						end,
 						
 						ExludedAll = function()
-							return getcustomasset and DexEnv.genv.getobjects
+							return not getcustomasset or not game.GetObjects
 						end,
 					}
 				}
@@ -3267,105 +3340,276 @@ function Explorer:Init()
 		
 		local MenuHold = false
 		
+
 		table.insert(Connections,NewEntry.Hit.InputBegan:Connect(function(input)
 			if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
 				local MenuHoldTick = tick()
 
-				if not (LabelHoving and GetLength(Explorer.Selected) > 1) then
+				if not (LabelHoving and GetLength(Explorer.Selected) > 1) and not MultipleSelect.Visible then
 					ObjSelect(Node)
 				end
 				
 				if not LabelHoving then
-					local MousePosition = Vector2.new(Mouse.X,Mouse.Y)
+					local firstpos = input.Position
+					local MousePosition = Vector2.new(Mouse.X, Mouse.Y)
 					local CanvasPosition = ExplorerUi.ScrollingFrame.CanvasPosition
-					local FirstPosition = MousePosition + Vector2.new(CanvasPosition.X,CanvasPosition.Y)
+					local FirstPosition = MousePosition + Vector2.new(CanvasPosition.X, CanvasPosition.Y)
 
-					local Movement,InputEnded
 					local Dragging = false
-					
-					local tic = tick()
+					local SelectedNodes = {}
 
-					const function CheckMovement()
-						MousePosition = Vector2.new(Mouse.X,Mouse.Y)
-						
-						if Dragging then
-							CanvasPosition = ExplorerUi.ScrollingFrame.CanvasPosition
-							
-							local InputPosition = MousePosition + Vector2.new(CanvasPosition.X,CanvasPosition.Y)
-							
-							const Offset = UDim2.fromOffset(
-								InputPosition.X - FirstPosition.X,
-								InputPosition.Y - FirstPosition.Y
-							)
-							
-							const FirstPos = UDim2.fromOffset(
-								FirstPosition.X - CanvasPosition.X,
-								FirstPosition.Y+58 - CanvasPosition.Y
-							)
+					local ScrollingFrame = ExplorerUi.ScrollingFrame
+					local MultipleSelect = MultipleSelect
 
-							MultipleSelect.Size = Offset
-							MultipleSelect.Position = FirstPos
+					local NodeCache = {}
+					local CacheVersion = 0
+					local LastCacheUpdate = 0
+					local CACHE_REFRESH_INTERVAL = 0.1
 
-							MultipleSelect.Visible = true
-							
-							local top = FirstPos.Y.Offset
-							local bottom = FirstPos.Y.Offset + Offset.Y.Offset
-
-							if Offset.Y.Offset < 0 then top, bottom = bottom, top end
-
-							if tick() - tic > 0.0166 then
-								tic = tick()
-								local Seletedbythisfunction = {}
-								
-								for v, Node in pairs(Explorer.Uis) do
-									if v:IsA("Frame") then
-										local centerYBottom = v.AbsolutePosition.Y + 18 + 58
-										local centerY = v.AbsolutePosition.Y + 58
-										if (centerY > top and centerY < bottom) or
-											(centerYBottom > top and centerYBottom < bottom)
-										then
-											SetSelect(Node, true)
-											Seletedbythisfunction[Node] = true
-										end
-									end
-								end
-								
-								ClearSelect(Seletedbythisfunction)
-							end
-							
+					local function UpdateNodeCache(force)
+						local currentTime = tick()
+						if not force and (currentTime - LastCacheUpdate) < CACHE_REFRESH_INTERVAL then
 							return
 						end
 
-						if (MousePosition - FirstPosition).Magnitude > 3 then
-							Dragging = true
+						LastCacheUpdate = currentTime
+						CacheVersion = CacheVersion + 1
+
+						local canvasPos = ScrollingFrame.CanvasPosition
+						local viewTop = ScrollingFrame.AbsolutePosition.Y
+						local viewBottom = viewTop + ScrollingFrame.AbsoluteSize.Y
+
+						local BUFFER = 200
+						local visibleTop = viewTop - BUFFER
+						local visibleBottom = viewBottom + BUFFER
+
+						local newCache = {}
+						local cacheIndex = 1
+
+						for v, Node in pairs(Explorer.Uis) do
+							if v:IsA("Frame") then
+								local absPos = v.AbsolutePosition
+								local nodeTop = absPos.Y + 58
+								local nodeBottom = absPos.Y + 18 + 58
+
+								if nodeBottom >= visibleTop and nodeTop <= visibleBottom then
+									newCache[cacheIndex] = {
+										node = Node,
+										frame = v,
+										top = nodeTop,
+										bottom = nodeBottom,
+										centerY = absPos.Y + 58,
+										ref = v
+									}
+									cacheIndex = cacheIndex + 1
+								end
+							end
+						end
+
+						NodeCache = newCache
+					end
+
+					UpdateNodeCache(true)
+
+					local function UpdateSelection(top, bottom, currentSelected)
+						local newSelected = {}
+						local needFullUpdate = false
+
+						if #NodeCache == 0 or CacheVersion == 0 then
+							UpdateNodeCache(true)
+						end
+
+						for _, cache in ipairs(NodeCache) do
+							if not cache.frame or not cache.frame.Parent then
+								needFullUpdate = true
+								break
+							end
+
+							local centerY = cache.centerY
+							local centerYBottom = cache.bottom
+
+							local isSelected = (centerY > top and centerY < bottom) or 
+								(centerYBottom > top and centerYBottom < bottom)
+
+							if isSelected then
+								SetSelect(cache.node, true)
+								newSelected[cache.node] = true
+							end
+						end
+
+						if needFullUpdate then
+							UpdateNodeCache(true)
+							return UpdateSelection(top, bottom, currentSelected)
+						end
+
+						for node, _ in pairs(currentSelected) do
+							if not newSelected[node] then
+								SetSelect(node, false)
+							end
+						end
+
+						return newSelected
+					end
+
+					local function HandleScrolling(mouseY, canvasPos)
+						local yTop = ScrollingFrame.AbsolutePosition.Y + 58
+						local yBottom = yTop + ScrollingFrame.AbsoluteSize.Y
+
+						local newCanvasY = canvasPos.Y
+						local shouldScroll = false
+
+						if mouseY <= yTop + 40 then
+							local scrollAmount = (yTop + 40) - mouseY
+							newCanvasY = canvasPos.Y - scrollAmount
+							shouldScroll = true
+						elseif mouseY >= yBottom - 60 then
+							local scrollAmount = mouseY - (yBottom - 60)
+							newCanvasY = canvasPos.Y + scrollAmount
+							shouldScroll = true
+						end
+
+						if shouldScroll then
+							if newCanvasY ~= canvasPos.Y then
+								ScrollingFrame.CanvasPosition = Vector2.new(canvasPos.X, newCanvasY)
+								return newCanvasY
+							end
+						end
+
+						return canvasPos.Y
+					end
+					
+					local lastUpdateTime = 0
+					local UPDATE_INTERVAL = 0.033
+					local frameCount = 0
+
+					local function CheckMovement()
+						local currentMousePos = Vector2.new(Mouse.X, Mouse.Y)
+
+						if Dragging then
+							
+							ScrollingFrame.ScrollingEnabled = false
+							ScrollingFrame:SetAttribute("Disibled", true)
+
+							local canvasPos = ScrollingFrame.CanvasPosition
+							local inputPos = currentMousePos + Vector2.new(canvasPos.X, canvasPos.Y)
+
+							local newCanvasY = HandleScrolling(Mouse.Y, canvasPos)
+							canvasPos = ScrollingFrame.CanvasPosition
+
+							local offset = UDim2.fromOffset(
+								inputPos.X - FirstPosition.X,
+								inputPos.Y - FirstPosition.Y
+							)
+
+							local firstPos = UDim2.fromOffset(
+								FirstPosition.X - canvasPos.X,
+								FirstPosition.Y + 58 - canvasPos.Y
+							)
+
+							MultipleSelect.Size = offset
+							MultipleSelect.Position = firstPos
+							MultipleSelect.Visible = true
+
+							local top = firstPos.Y.Offset
+							local bottom = firstPos.Y.Offset + offset.Y.Offset
+							if offset.Y.Offset < 0 then
+								top, bottom = bottom, top
+							end
+
+							local currentTime = tick()
+							frameCount = frameCount + 1
+
+							if currentTime - lastUpdateTime >= UPDATE_INTERVAL or 
+								newCanvasY ~= canvasPos.Y then
+								lastUpdateTime = currentTime
+
+								if frameCount % 5 == 0 then
+									UpdateNodeCache(false)
+								end
+
+								SelectedNodes = UpdateSelection(top, bottom, SelectedNodes)
+							end
+
+							return
+						end
+
+						if input.UserInputType == Enum.UserInputType.Touch then
+							if tick() - MenuHoldTick > 0.5 and 
+								(currentMousePos - Vector2.new(firstpos.X, firstpos.Y)).Magnitude < 5 then
+								Dragging = true
+								UpdateNodeCache(true)
+							end
+						else
+							if (currentMousePos - FirstPosition).Magnitude > 3 then
+								Dragging = true
+								UpdateNodeCache(true)
+							end
 						end
 					end
 
-					Movement = RunService.RenderStepped:Connect(function(dt)
+					local ScrollListener
+					ScrollListener = ScrollingFrame:GetPropertyChangedSignal("CanvasPosition"):Connect(function()
+						if Dragging then
+							task.defer(function()
+								UpdateNodeCache(true)
+							end)
+						end
+					end)
+
+					local Movement = RunService.Heartbeat:Connect(function(dt)
 						CheckMovement()
 					end)
 
-					InputEnded = UserInputService.InputEnded:Connect(function(input)
-						if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+					local InputEnded;InputEnded = UserInputService.InputEnded:Connect(function(input)
+						if input.UserInputType == Enum.UserInputType.MouseButton1 or 
+							input.UserInputType == Enum.UserInputType.Touch then
+
 							if Dragging then
 								MultipleSelect.Visible = false
-
 								Dragging = false
-							elseif tick()-MenuHoldTick >= .5 then
-								task.spawn(function()
-									MenuHold = true
-									Explorer:ShowMenu()
-									MenuHold = false
-								end)
+
+								local canvasPos = ScrollingFrame.CanvasPosition
+								local inputPos = Vector2.new(Mouse.X, Mouse.Y) + Vector2.new(canvasPos.X, canvasPos.Y)
+								local offset = UDim2.fromOffset(
+									inputPos.X - FirstPosition.X,
+									inputPos.Y - FirstPosition.Y
+								)
+								local firstPos = UDim2.fromOffset(
+									FirstPosition.X - canvasPos.X,
+									FirstPosition.Y + 58 - canvasPos.Y
+								)
+								local top = firstPos.Y.Offset
+								local bottom = firstPos.Y.Offset + offset.Y.Offset
+								if offset.Y.Offset < 0 then top, bottom = bottom, top end
+
+								UpdateNodeCache(true)
+								SelectedNodes = UpdateSelection(top, bottom, SelectedNodes)
+
+							elseif tick() - MenuHoldTick >= 0.5 then
+								if (Vector2.new(input.Position.X, input.Position.Y) - FirstPosition).Magnitude < 3 then
+									task.spawn(function()
+										MenuHold = true
+										Explorer:ShowMenu()
+										MenuHold = false
+									end)
+								end
 							end
-							
+
+							ScrollingFrame.ScrollingEnabled = true
+							ScrollingFrame:SetAttribute("Disibled", nil)
+
 							Movement:Disconnect()
 							InputEnded:Disconnect()
+							ScrollListener:Disconnect()
+
+							-- 清理
+							NodeCache = {}
+							SelectedNodes = {}
 						end
 					end)
 				end
 			elseif input.UserInputType == Enum.UserInputType.MouseButton2 then
-				if not Explorer.Selected[Node] then
+				if not Explorer.Selected[Node] and not MultipleSelect.Visible then
 					ObjSelect(Node)
 				end
 			end
@@ -3421,13 +3665,18 @@ function Explorer:Init()
 		
 		local function LabelConnectFunction(input)
 			if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+				if MultipleSelect.Visible then
+					return
+				end
 				local IsSelected = Explorer.Selected[Node]
+				local HoldTime = tick()
 				LabelHoving = true
 				local FirstPos = input.Position
 				local Movement,Movement2,InputEnded
 				local Dragging = false
-
+				
 				local function CheckMovement(input)
+					if MultipleSelect.Visible then return end
 					if Dragging then
 						MoveFrame.Position = UDim2.fromOffset(input.Position.X,input.Position.Y+68)
 
@@ -3452,7 +3701,12 @@ function Explorer:Init()
 						MoveFrame.Visible = true
 						return
 					end
-					if (input.Position - FirstPos).Magnitude > 3 then
+					
+					if input.UserInputType == Enum.UserInputType.Touch then
+						if (input.Position - FirstPos).Magnitude < 3 and tick()-HoldTime > .5 then
+							Dragging = true
+						end
+					elseif (input.Position - FirstPos).Magnitude > 3 then
 						Dragging = true
 					end
 				end
@@ -3469,6 +3723,7 @@ function Explorer:Init()
 
 				InputEnded = UserInputService.InputEnded:Connect(function(input)
 					if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+						
 						if Dragging then
 							local Hoving = Explorer.Hoving
 							if Hoving and Node ~= game and not Explorer.Selected[Hoving] then
@@ -3491,25 +3746,29 @@ function Explorer:Init()
 							end
 						else
 							if GetLength(Explorer.Selected) > 1 then
-								ObjSelect(Node)
+								if not MultipleSelect.Visible then
+									ObjSelect(Node)
+								end
 							else
-								if not DoubleClick and not MenuHold and IsSelected then
-									task.delay(.5,function()
-										if not DoubleClick and not MenuHold then
-											Node:Rename()
-										end
+								if (input.Position - FirstPos).Magnitude < 5 then
+									if not DoubleClick and not MenuHold and IsSelected then
+										task.delay(.5,function()
+											if not DoubleClick and not MenuHold then
+												Node:Rename()
+											end
 
-										if DoubleClick then
-											DoubleClick = false
-										end
-									end)
+											if DoubleClick then
+												DoubleClick = false
+											end
+										end)
+									end
 								end
 							end
 						end
 
 						MoveFrame.Visible = false
 						LabelHoving = false
-
+						
 						Movement:Disconnect()
 						Movement2:Disconnect()
 						InputEnded:Disconnect()
@@ -3755,22 +4014,6 @@ function Explorer:Init()
 		Menu:Show(Selected)
 	end
 	
-	if not DexEnv.DescendantAddedConnect then
-		DexEnv.DescendantAddedConnect = {}
-	else
-		for i,v in pairs(DexEnv.DescendantAddedConnect) do
-			v:Disconnect()
-		end
-	end
-	
-	if not DexEnv.DescendantRemovingConnect then
-		DexEnv.DescendantRemovingConnect = {}
-	else
-		for i,v in pairs(DexEnv.DescendantRemovingConnect) do
-			v:Disconnect()
-		end
-	end
-	
 	Explorer.Roots = {}
 	
 	function Explorer:NewRoot(Obj,DisplayName,Expand)
@@ -3794,8 +4037,8 @@ function Explorer:Init()
 			Explorer.ObjAdded(v)
 		end
 
-		table.insert(DexEnv.DescendantAddedConnect,Obj.DescendantAdded:Connect(Explorer.ObjAdded))
-		table.insert(DexEnv.DescendantRemovingConnect,Obj.DescendantRemoving:Connect(Explorer.ObjRemoved))
+		table.insert(DexEnv.Connections,Obj.DescendantAdded:Connect(Explorer.ObjAdded))
+		table.insert(DexEnv.Connections,Obj.DescendantRemoving:Connect(Explorer.ObjRemoved))
 
 		
 		if Expand then
@@ -3872,26 +4115,42 @@ function Explorer:Init()
 		end)
 	end)
 	
-	RunService.RenderStepped:Connect(function(deltaTime : number)
+	table.insert(DexEnv.Connections,UserInputService.InputChanged:Connect(function(Input)
+		if Input.UserInputType == Enum.UserInputType.MouseMovement then
+			ExplorerUi.ScrollingFrame.ScrollingEnabled = false
+		end
+	end))
+	
+	table.insert(DexEnv.Connections,UserInputService.TouchMoved:Connect(function()
+		if not ExplorerUi.ScrollingFrame:GetAttribute("Disibled") then
+			ExplorerUi.ScrollingFrame.ScrollingEnabled = true
+		end
+	end))
+	
+	table.insert(DexEnv.Connections,RunService.RenderStepped:Connect(function(deltaTime : number)
 		local MousePosition = Vector2.new(Mouse.X,Mouse.Y)
 		local HaveHover = false
-		
+
 		if ScrollDragging then
 			HovingScrollBar = true
 		else
 			if PointInArea(MousePosition,ScrollBarFrame.Right.AbsolutePosition,ScrollBarFrame.Right.AbsolutePosition+ScrollBarFrame.Right.AbsoluteSize) then
 				HovingScrollBar = true
-				ScrollBarFrame.Right.UIStroke.Enabled = true
+				if not ExplorerUi.ScrollingFrame:GetAttribute("Disibled") then
+					ExplorerUi.ScrollingFrame.ScrollingEnabled = true
+				end
 			elseif PointInArea(MousePosition,ScrollBarFrame.Down.AbsolutePosition,ScrollBarFrame.Down.AbsolutePosition+ScrollBarFrame.Down.AbsoluteSize) then
 				HovingScrollBar = true
-				ScrollBarFrame.Down.UIStroke.Enabled = true
+				if not ExplorerUi.ScrollingFrame:GetAttribute("Disibled") then
+					ExplorerUi.ScrollingFrame.ScrollingEnabled = true
+				end
 			else
 				HovingScrollBar = false
 				ScrollBarFrame.Right.UIStroke.Enabled = false
 				ScrollBarFrame.Down.UIStroke.Enabled = false
 			end
 		end
-		
+
 		if not HovingScrollBar then
 			for frame,node in pairs(Explorer.Uis) do
 				if PointInArea(MousePosition,frame.AbsolutePosition,frame.AbsolutePosition+Vector2.new(frame.AbsoluteSize.X,18)) then
@@ -3910,7 +4169,7 @@ function Explorer:Init()
 				end
 			end
 		end
-		
+
 		if not HaveHover then
 			if Explorer.Hoving then
 				local Entry = Explorer.Hoving.Ui
@@ -3919,10 +4178,12 @@ function Explorer:Init()
 				end
 				Explorer.Hoving = nil
 			end
-			
-			ExplorerUi.ScrollingFrame.ScrollingEnabled = true
+
+			if not ExplorerUi.ScrollingFrame:GetAttribute("Disibled") then
+				ExplorerUi.ScrollingFrame.ScrollingEnabled = true
+			end
 		end
-	end)
+	end))
 end
 
 -- [-[ 初始化 ]-]
