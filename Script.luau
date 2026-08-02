@@ -638,6 +638,7 @@ do
 	ScrollingFrame.Size = UDim2.fromScale(1, 1)
 	ScrollingFrame.VerticalScrollBarInset = Enum.ScrollBarInset.Always
 	ScrollingFrame.HorizontalScrollBarInset = Enum.ScrollBarInset.Always
+	ScrollingFrame.ElasticBehavior = Enum.ElasticBehavior.Never
 	ScrollingFrame.BackgroundTransparency = 1
 	ScrollingFrame.BorderColor3 = Color3.fromRGB(0, 0, 0)
 	ScrollingFrame.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
@@ -1367,6 +1368,7 @@ do
 	ScrollingFrame.BorderColor3 = Color3.fromRGB(0, 0, 0)
 	ScrollingFrame.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
 	ScrollingFrame.HorizontalScrollBarInset = Enum.ScrollBarInset.Always
+	ScrollingFrame.ElasticBehavior = Enum.ElasticBehavior.Never
 	ScrollingFrame.CanvasSize = UDim2.fromOffset(0, 0)
 
 	local UIListLayout = Instance.new("UIListLayout")
