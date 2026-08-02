@@ -7,8 +7,6 @@
 3. 全面优化移动端适配
 
 4. 优化框选表现，不再异常卡顿
-
-5. 修复触屏导致的重复触发框选
 ]]
 
 --[[
@@ -2684,6 +2682,10 @@ function Menu:Init()
 						end)
 
 						Args.Ui = Ui
+						
+						Ui.Destroying:Once(function()
+							Args.Ui = nil
+						end)
 					end
 				end
 			end)
@@ -2699,6 +2701,26 @@ function Menu:Init()
 
 		if Args.Children then
 			NewEntry.TextButton.Visible = true
+			
+			Connections[3] = NewEntry.Hit.MouseButton1Click:Connect(function()
+				if Menu.Uis[Index+1] then
+					Menu.Uis[Index+1]:Destroy()
+					Menu.Uis[Index+1] = nil
+				end
+				if Args.Children and #Args.Children > 0 then
+					local Ui = Menu:CreateUi(UDim2.fromOffset(NewEntry.AbsolutePosition.X,NewEntry.AbsolutePosition.Y+58) - UDim2.fromOffset(MenuUi.Size.X.Offset, 0),Args.Children,Selected,Index + 1)
+					MenuUi.Destroying:Once(function()
+						Ui:Destroy()
+						Args.Ui = nil
+					end)
+
+					Args.Ui = Ui
+					
+					Ui.Destroying:Once(function()
+						Args.Ui = nil
+					end)
+				end
+			end)
 		else
 			NewEntry.TextButton.Visible = false
 
