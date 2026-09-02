@@ -2094,24 +2094,9 @@ local EmbeddedModules = {
 					for _,node in next, sList do
 						local Obj = node.Obj
 
-						if Obj:IsA("BasePart") then
-							if Obj.CanCollide then
-								plr.Character:MoveTo(Obj.Position)
-							else
-								plrRP.CFrame = CFrame.new(Obj.Position + Settings.Explorer.TeleportToOffset or Vector3.new(0,0,0))
-							end
+						if Obj:IsA("BasePart") or Obj:IsA("Model") then
+							plrRP.CFrame = Obj:GetPivot() * CFrame.new(Settings.Explorer.TeleportToOffset or Vector3.new(0,0,0))
 							break
-						elseif Obj:IsA("Model") then
-							if Obj.PrimaryPart then
-								if Obj.PrimaryPart.CanCollide then
-									plr.Character:MoveTo(Obj.PrimaryPart.Position)
-								else
-									plrRP.CFrame = CFrame.new(Obj.PrimaryPart.Position + Settings.Explorer.TeleportToOffset or Vector3.new(0,0,0))
-								end
-								break
-							else
-								plrRP.CFrame = Obj:GetPivot()
-							end
 						end
 					end
 				end})
@@ -2246,7 +2231,7 @@ local EmbeddedModules = {
 						env.setclipboard(table.concat(resList,"\n"))
 					end
 				end})
-				
+
 				local SomeDefaults = {
 					Method = {},
 					Signal = {},
@@ -2304,7 +2289,7 @@ local EmbeddedModules = {
 
 					return methodOutput
 				end
-				
+
 				local function QuerySignals(Object)
 					local Class = Object.ClassName
 
@@ -2368,7 +2353,7 @@ local EmbeddedModules = {
 
 					return eventOutput
 				end
-				
+
 				local function GetHiddenPropties(Instance)
 					local HiddenProperties = {}
 
@@ -2386,7 +2371,7 @@ local EmbeddedModules = {
 					return HiddenProperties
 				end
 
-				
+
 				context:Register("VIEW_METHODS",{Name = "查看目标的方法", IconMap = Explorer.MiscIcons, Icon = "ViewScript", DisabledIcon = "Empty", OnClick = function()
 					local sList = selection.List
 					if #sList == 1 then
@@ -2394,7 +2379,7 @@ local EmbeddedModules = {
 						ScriptViewer.ShowText(TableToLuaCode(QueryMethods(obj),true))
 					end
 				end})
-				
+
 				context:Register("VIEW_SIGNALS",{Name = "查看目标的信号", IconMap = Explorer.MiscIcons, Icon = "ViewScript", DisabledIcon = "Empty", OnClick = function()
 					local sList = selection.List
 					if #sList == 1 then
@@ -2402,7 +2387,7 @@ local EmbeddedModules = {
 						ScriptViewer.ShowText(TableToLuaCode(QuerySignals(obj),true))
 					end
 				end})
-				
+
 				context:Register("VIEW_HP",{Name = "查看目标的隐藏属性", IconMap = Explorer.MiscIcons, Icon = "ViewScript", DisabledIcon = "Empty", OnClick = function()
 					local sList = selection.List
 					if #sList == 1 then
@@ -2410,7 +2395,7 @@ local EmbeddedModules = {
 						ScriptViewer.ShowText(TableToLuaCode(GetHiddenPropties(obj),true))
 					end
 				end})
-				
+
 				context:Register("INSERT_OBJECT",{Name = "插入实例", IconMap = Explorer.MiscIcons, Icon = "InsertObject", OnClick = function()
 					local mouse = Main.Mouse
 					local x,y = Explorer.LastRightClickX or mouse.X, Explorer.LastRightClickY or mouse.Y
