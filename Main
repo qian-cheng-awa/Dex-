@@ -2584,7 +2584,7 @@ local EmbeddedModules = {
 					upvalue_comments = "true",
 					function_line_comments = "true"
 				}
-				
+
 				if _G.DecompilerTelemetry == nil then _G.DecompilerTelemetry = true end
 				if _G.DecompilerRuntimeContext == nil then _G.DecompilerRuntimeContext = true end
 
@@ -2729,7 +2729,7 @@ local EmbeddedModules = {
 					end
 					return CONTEXT_MAGIC .. string.pack("<I4", #json) .. json .. bytecode
 				end
-				
+
 				context:Register("VIEW_SCRIPT3",{Name = "查看脚本（luacid免费版本）", IconMap = Explorer.MiscIcons, Icon = "ViewScript", DisabledIcon = "Empty", OnClick = function()
 					local scr = selection.List[1] and selection.List[1].Obj
 					if scr then
@@ -2740,7 +2740,7 @@ local EmbeddedModules = {
 							end
 
 							local url = buildUrl()
-							
+
 							local body = bytecode
 							local contentType = "application/octet-stream"
 
@@ -14598,7 +14598,7 @@ return search]==]
 					dumpbtn.TextColor3 = Color3.new(0.5,0.5,0.5)
 					source = "-- Unable to view senv.\n"
 					source = source .. "-- Script Path: "..getPath(scr).."\n"
-					if (scr.ClassName == "Script" and (scr.RunContext == Enum.RunContext.Legacy or scr.RunContext == Enum.RunContext.Server)) or not (scr:IsA("LocalScript") or scr:IsA("ModuleScript")) then
+					if (scr.ClassName == "Script" and (scr.RunContext == Enum.RunContext.Legacy or scr.RunContext == Enum.RunContext.Server)) then
 						source = source .. "-- Reason: The script is not running on client. (attempt to getsenv ServerScript or 'Script' with RunContext Server)\n"
 					elseif not getsenv then
 						source = source .. "-- Reason: Your executor does not support getsenv. (missing 'decompile' function)\n"
