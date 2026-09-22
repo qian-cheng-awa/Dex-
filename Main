@@ -14639,7 +14639,7 @@ return search]==]
 					dumpbtn.TextColor3 = Color3.new(0.5,0.5,0.5)
 					source = "-- Unable to view source.\n"
 					source = source .. "-- Script Path: "..getPath(scr).."\n"
-					if (scr.ClassName == "Script" and (scr.RunContext == Enum.RunContext.Legacy or scr.RunContext == Enum.RunContext.Server)) or not scr:IsA("LocalScript") then
+					if (scr.ClassName == "Script" and (scr.RunContext == Enum.RunContext.Legacy or scr.RunContext == Enum.RunContext.Server)) then
 						source = source .. "-- Reason: The script is not running on client. (attempt to decompile ServerScript or 'Script' with RunContext Server)\n"
 					elseif not env.decompile then
 						source = source .. "-- Reason: Your executor does not support decompiler. (missing 'decompile' function)\n"
