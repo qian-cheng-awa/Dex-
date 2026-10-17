@@ -2359,8 +2359,10 @@ local EmbeddedModules = {
 				local function GetHiddenPropties(Instance)
 					if gethiddenproperties then
 						return gethiddenproperties(Instance)
+					else
+						return {}
 					end
-					local HiddenProperties = {}
+					--[[local HiddenProperties = {}
 
 					for i,v in getproperties(Instance) do
 						local Success, Error = pcall(function()
@@ -2373,7 +2375,7 @@ local EmbeddedModules = {
 					end
 
 
-					return HiddenProperties
+					return HiddenProperties]]
 				end
 
 
