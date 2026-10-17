@@ -2357,6 +2357,9 @@ local EmbeddedModules = {
 				end
 
 				local function GetHiddenPropties(Instance)
+					if gethiddenproperties then
+						return gethiddenproperties(Instance)
+					end
 					local HiddenProperties = {}
 
 					for i,v in getproperties(Instance) do
@@ -2985,16 +2988,16 @@ local EmbeddedModules = {
 					local scr = selection.List[1] and selection.List[1].Obj
 					if scr then ScriptViewer.DumpFunctions(scr) end
 				end})
-				
+
 				context:Register("SAVE_FUNCTION_BYTE",{Name = "保存函数bytecode", IconMap = Explorer.MiscIcons, Icon = "SelectChildren", DisabledIcon = "Empty", OnClick = function()
 					local scr = selection.List[1] and selection.List[1].Obj
 					if env.getfunctionbytecode and scr then
 						local getgc = getgc or get_gc_objects
-						
+
 						for _, _function in pairs(env.getgc()) do
 							if typeof(_function) == "function" and rawget(getfenv(_function),"script") and rawget(getfenv(_function),"script") == scr then
 								local Byte = env.getfunctionbytecode(_function)
-								
+
 								if Byte then
 									writefile(scr:GetFullName().." Functions/"..tostring(_function),Byte)
 								end
@@ -3002,7 +3005,7 @@ local EmbeddedModules = {
 						end
 					end
 				end})
-				
+
 				context:Register("FIRE_TOUCHTRANSMITTER",{Name = "触发触碰事件（TouchTransmitter）", OnClick = function()
 					local hrp = plr.Character and plr.Character:FindFirstChild("HumanoidRootPart")
 					if not hrp then return end
