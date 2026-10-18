@@ -3005,7 +3005,7 @@ local EmbeddedModules = {
 										writefile(scr:GetFullName().." Functions/"..tostring(_function),Byte)
 									end
 								else
-									writefile(scr:GetFullName().." Functions/[C] "..tostring(_function),"")
+									writefile(scr:GetFullName().." Functions/CClosure "..tostring(_function),"")
 								end
 							end
 						end
