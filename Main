@@ -1867,6 +1867,7 @@ local EmbeddedModules = {
 				if presentClasses["ModuleScript"] then
 					context:AddRegistered("VIEW_TABLE", not require)
 					context:AddRegistered("FUNCTIONS", not require)
+					context:AddRegistered("VIEW_MENV", getmenv == nil)
 				end
 
 				if sMap[nilNode] then
@@ -2825,6 +2826,10 @@ local EmbeddedModules = {
 				context:Register("VIEW_SENV",{Name = "查看脚本环境", IconMap = Explorer.MiscIcons, Icon = "ViewScript", DisabledIcon = "Empty", OnClick = function()
 					local scr = selection.List[1] and selection.List[1].Obj
 					if scr then ScriptViewer.ViewSenv(scr) end
+				end})
+				context:Register("VIEW_MENV",{Name = "查看Module环境", IconMap = Explorer.MiscIcons, Icon = "ViewScript", DisabledIcon = "Empty", OnClick = function()
+					local scr = selection.List[1] and selection.List[1].Obj
+					if scr then ScriptViewer.ViewMenv(scr) end
 				end})
 
 				context:Register("VIEW_TABLE",{Name = "查看表格", IconMap = Explorer.MiscIcons, Icon = "ViewScript", DisabledIcon = "Empty", OnClick = function()
@@ -14429,7 +14434,7 @@ return search]==]
 				end
 				function functions:dump_function(input, indent)
 					functions:add_to_dump(`\nFunction Dump:{iscclosure(input) and " [C]"} {functions:get_function_name(input)}`, indent)
-					
+
 					if not iscclosure(input) then
 						functions:add_to_dump(("\nFunction Upvalues: %s"):format(functions:get_function_name(input)), indent)
 						for index, upvalue in pairs(getupvalues(input)) do
@@ -14654,6 +14659,45 @@ return search]==]
 
 					source = "-- Script Path: "..getPath(scr).."\n"
 					source = source .. "-- Took "..tostring(math.floor( (tick() - oldtick) * 100) / 100).."s to getsenv.\n"
+					source = source .. "-- Executor: "..executorName.." ("..executorVersion..")\n\n"
+
+					source = source .. decompiled
+
+					oldtick = nil
+					decompiled = nil
+				end
+
+				codeFrame:SetText(source)
+				window:Show()
+			end
+			ScriptViewer.ViewMenv = function(scr)
+				local oldtick = tick()
+				local s,source = pcall(getmenv or function() end,scr)
+
+				if not s or not source then
+					local errorm = source
+					PreviousScr = nil
+					dumpbtn.TextColor3 = Color3.new(0.5,0.5,0.5)
+					source = "-- Unable to view senv.\n"
+					source = source .. "-- Script Path: "..getPath(scr).."\n"
+					if not getmenv then
+						source = source .. "-- Reason: Your executor does not support getmenv. (missing 'getmenv' function)\n"
+					else
+						source = source .. "-- Reason: Unknown\n"
+					end
+					source = source .. "-- Executor: "..executorName.." ("..executorVersion..")\n"
+					source = source .. "-- Error Message: "..tostring(errorm)
+				else
+
+					source = TableToLuaCode(source,true)
+
+					PreviousScr = scr
+					dumpbtn.TextColor3 = Color3.new(1,1,1)
+
+					local decompiled = source
+
+					source = "-- Script Path: "..getPath(scr).."\n"
+					source = source .. "-- Took "..tostring(math.floor( (tick() - oldtick) * 100) / 100).."s to getmenv.\n"
 					source = source .. "-- Executor: "..executorName.." ("..executorVersion..")\n\n"
 
 					source = source .. decompiled
